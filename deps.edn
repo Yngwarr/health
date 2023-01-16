@@ -1,0 +1,5 @@
+{:paths ["src/health/" "resources"]
+ :deps {org.clojure/clojure {:mvn/version "1.11.1"}
+        ring/ring-core {:mvn/version "1.9.6"}
+        ring/ring-jetty-adapter {:mvn/version "1.9.6"}
+        compojure/compojure {:mvn/version "1.7.0"}}}
