@@ -1,0 +1,4 @@
+FROM postgres:15.1
+RUN mkdir -p /docker-entrypoint-initdb.d
+COPY create-table.sql /docker-entrypoint-initdb.d
+EXPOSE 5432
