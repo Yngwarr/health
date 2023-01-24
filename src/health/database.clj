@@ -6,6 +6,13 @@
          :user "postgres"
          :password "deathstar"
          :host "localhost"
-         :port 8080})
+         :port 5432})
 
 (def ds (jdbc/get-datasource db))
+
+(defn all-users []
+  (jdbc/execute! ds ["select * from patients"]))
+
+(comment
+  (jdbc/execute! ds ["select * from patients"])
+  )

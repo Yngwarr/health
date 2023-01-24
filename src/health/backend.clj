@@ -2,7 +2,8 @@
   (:require [ring.adapter.jetty :refer [run-jetty]]
             [ring.util.response :refer [resource-response]]
             [compojure.core :refer [GET defroutes]]
-            [compojure.route :as route]))
+            [compojure.route :as route]
+            [health.database :refer [all-users]]))
 
 (defn page-user [request]
   (let [user (-> request :params :id)]
@@ -14,6 +15,10 @@
   {:status 404
    :headers {"Content-Type" "text/plain"}
    :body "Page not found. :("})
+
+(defn page-patients [request]
+  {:status 200
+   :body (all-users)})
 
 (defroutes app
   (GET "/user/:id" [id :as request] (page-user request))
