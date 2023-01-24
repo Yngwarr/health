@@ -1,6 +1,7 @@
 (ns health.backend
   (:require [ring.adapter.jetty :refer [run-jetty]]
             [ring.util.response :refer [resource-response]]
+            [ring.middleware.json :refer [wrap-json-response]]
             [compojure.core :refer [GET defroutes]]
             [compojure.route :as route]
             [health.database :refer [all-users]]))
@@ -20,11 +21,14 @@
   {:status 200
    :body (all-users)})
 
-(defroutes app
+(defroutes app-raw
   (GET "/user/:id" [id :as request] (page-user request))
   (GET "/" [] (resource-response "index.html" {:root "public"}))
+  (GET "/patients" [request] (page-patients request))
   (route/resources "/")
   page-404)
+
+(def app (-> app-raw wrap-json-response))
 
 (comment
   (app {:request-method :get :uri "/index.html"})
