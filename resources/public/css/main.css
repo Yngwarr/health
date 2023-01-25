@@ -3,10 +3,24 @@
     src: url('../font/PxPlus_IBM_CGA.ttf');
 }
 
-html {
-	font-size: 10px;
+tr:hover {
+    background: #eee;
 }
 
-body {
-	background: #fff;
+.row {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+}
+
+.row > * {
+    margin: 4px;
+}
+
+table {
+    width: 100%;
+}
+
+td {
+    text-align: center;
 }

@@ -4,7 +4,7 @@
             [ring.middleware.json :refer [wrap-json-response]]
             [compojure.core :refer [GET defroutes]]
             [compojure.route :as route]
-            [health.database :refer [all-users]]))
+            [health.database :refer [all-patients]]))
 
 (defn page-user [request]
   (let [user (-> request :params :id)]
@@ -19,7 +19,7 @@
 
 (defn page-patients [request]
   {:status 200
-   :body (all-users)})
+   :body (all-patients)})
 
 (defroutes app-raw
   (GET "/user/:id" [id :as request] (page-user request))
