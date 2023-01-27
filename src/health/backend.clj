@@ -1,6 +1,5 @@
 (ns health.backend
-  (:require [ring.adapter.jetty :refer [run-jetty]]
-            [ring.util.response :refer [resource-response]]
+  (:require [ring.util.response :refer [resource-response]]
             [ring.middleware.json :refer [wrap-json-response]]
             [compojure.core :refer [GET defroutes]]
             [compojure.route :as route]
@@ -29,11 +28,3 @@
   page-404)
 
 (def app (-> app-raw wrap-json-response))
-
-(comment
-  (app {:request-method :get :uri "/index.html"})
-  (app {:request-method :post :uri "/users"})
-
-  (def server (run-jetty app {:port 8080 :join? false}))
-  (.stop server)
-  )
