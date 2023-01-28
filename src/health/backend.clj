@@ -3,6 +3,7 @@
             [ring.middleware.json :refer [wrap-json-response]]
             [compojure.core :refer [GET defroutes]]
             [compojure.route :as route]
+            [ring.adapter.jetty :refer [run-jetty]]
             [health.database :refer [all-patients]]))
 
 (defn page-user [request]
@@ -28,3 +29,7 @@
   page-404)
 
 (def app (-> app-raw wrap-json-response))
+
+(defn -main [& args]
+  (println "Starting the server...")
+  (run-jetty app {:port 8080 :join? true}))

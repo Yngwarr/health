@@ -1,5 +1,8 @@
 (ns health.client.main
-  (:require [dumdom.core :as d]))
+  (:require-macros [cljs.core.async.macros :refer [go]])
+  (:require [dumdom.core :as d]
+            [cljs-http.client :as http]
+            [cljs.core.async :refer [<!]]))
 
 (d/defcomponent Controls [props]
   [:div {:class "row"}
@@ -22,4 +25,10 @@
 (defn render []
   (d/render (Page []) (js/document.getElementById "body")))
 
-(println "Sup from main!")
+;(defn onload []
+  ;(println "I've loaded!"))
+
+;(-> js/document .-body (.addEventListener "load" onload))
+
+(go (let [response (<! (http/get "http://localhost:8080/patients"))]
+      (println response)))

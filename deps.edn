@@ -1,8 +1,9 @@
 {:paths ["src" "resources"]
  :deps {org.clojure/clojure {:mvn/version "1.11.1"}
         org.clojure/clojurescript {:mvn/version "1.11.60"}
-        com.bhauman/figwheel-main {:mvn/version "0.2.18"}
+        org.clojure/core.async {:mvn/version "1.6.673"}
         cjohansen/dumdom {:mvn/version "2022.09.28"}
+        cljs-http/cljs-http {:mvn/version "0.1.46"}
         ring/ring-core {:mvn/version "1.9.6"}
         ring/ring-jetty-adapter {:mvn/version "1.9.6"}
         ring/ring-json {:mvn/version "0.5.1"}
@@ -11,4 +12,6 @@
         org.postgresql/postgresql {:mvn/version "42.5.1"}}
  :aliases
  {:dev {:extra-paths ["test" "dev" "dev-resources"]
-        :extra-deps {}}}}
+        :extra-deps {com.bhauman/figwheel-main {:mvn/version "0.2.18"}}}
+  :uberjar {:extra-deps {uberdeps/uberdeps {:mvn/version "1.2.0"}}
+            :main-opts ["-m" "uberdeps.uberjar" "--target" "out.jar"]}}}
