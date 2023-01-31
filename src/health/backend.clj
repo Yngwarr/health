@@ -4,7 +4,7 @@
             [compojure.core :refer [GET defroutes]]
             [compojure.route :as route]
             [ring.adapter.jetty :refer [run-jetty]]
-            [health.database :refer [all-patients]]))
+            [health.database :as db]))
 
 (defn page-user [request]
   (let [user (-> request :params :id)]
@@ -19,7 +19,7 @@
 
 (defn page-patients [request]
   {:status 200
-   :body (all-patients)})
+   :body (db/all-patients)})
 
 (defroutes app-raw
   (GET "/user/:id" [id :as request] (page-user request))

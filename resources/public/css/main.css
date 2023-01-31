@@ -1,6 +1,5 @@
-@font-face {
-    font-family: IBM;
-    src: url('../font/PxPlus_IBM_CGA.ttf');
+:root {
+    --lg-breakpoint: 900px;
 }
 
 tr:hover {
@@ -23,4 +22,10 @@ table {
 
 td {
     text-align: center;
+}
+
+.action {
+    display: inline-block;
+    padding: 1px 6px;
+    margin: 1px;
 }

@@ -6,16 +6,17 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<!--<link href='css/reset.css' rel='stylesheet'>-->
 		<link rel="stylesheet" href="https://unpkg.com/marx-css/css/marx.min.css">
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,300,0,0" />
 		<link href='css/main.css' rel='stylesheet'>
 	</head>
 	<body id='body'>
 		<main>
 			<div class='row'>
 				<input type='text' id='search-bar' placeholder='Find something...'>
-				<button>Search</button>
-				<button>Add a patient</button>
+				<button id='search'>Search</button>
+				<button id='add'>Add a patient</button>
 			</div>
-			<table>
+			<table id='patients'>
 				<tr>
 					<th>ID</th>
 					<th>Full Name</th>
@@ -23,22 +24,6 @@
 					<th>Birthdate</th>
 					<th>Address</th>
 					<th>Insurance #</th>
-				</tr>
-				<tr>
-					<td>1</td>
-					<td>Jar Jar Binks</td>
-					<td>Male</td>
-					<td>4325-10-02</td>
-					<td>Naboo</td>
-					<td>092437894729</td>
-				</tr>
-				<tr>
-					<td>2</td>
-					<td>Ada Lovelace</td>
-					<td>Female</td>
-					<td>1815-12-10</td>
-					<td>London, England</td>
-					<td>834729108374</td>
 				</tr>
 			</table>
 		</main>

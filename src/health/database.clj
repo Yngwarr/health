@@ -12,8 +12,10 @@
 
 (def ds (jdbc/get-datasource db))
 
+(set! *print-namespace-maps* false)
+
 (defn all-patients []
-  (jdbc/execute! ds ["select * from patients"]))
+  (query ds ["select * from patients"]))
 
 (defn add-patient [info]
   (insert! ds :patients info))
