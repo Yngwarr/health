@@ -4,6 +4,8 @@
             [cljs-http.client :as http]
             [cljs.core.async :refer [<!]]))
 
+(declare update-view)
+
 (def host "http://localhost:8080/")
 
 (d/defcomponent Controls [props]
@@ -14,7 +16,8 @@
 
 (defn delete-patient [id]
   ; TODO implement
-  (println (str "deleting " id)))
+  (go (let [response (<! (http/delete (str "patient/" id)))]
+        (update-view))))
 
 (defn edit-patient [id]
   ; TODO implement
@@ -58,6 +61,9 @@
 ;(-> js/document .-body (.addEventListener "load" onload))
 
 ; TODO handle error statuses
-(go (let [response (<! (http/get (str host "patients")))]
-      (println (:body response))
-      (render (:body response))))
+(defn update-view []
+  (go (let [response (<! (http/get (str host "patients")))]
+        (println (:body response))
+        (render (:body response)))))
+
+(update-view)

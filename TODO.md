@@ -2,16 +2,19 @@
 
 # Essential
 
+* Removal confirmation dialog.
 * Search.
 * Add.
-* Remove:
-    - Confirmation dialog.
 * Updating patient info.
 * Tests.
 
-# Nice to have
+# Bonus points
 
 * Table pagination.
 * CI.
 * Kubernetification.
+
+# Nice to have
+
 * Bulk deletion.
+* Find a better way to assign ids to patients.

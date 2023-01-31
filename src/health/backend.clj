@@ -1,7 +1,8 @@
 (ns health.backend
-  (:require [ring.util.response :refer [resource-response]]
+  (:require [clojure.core.match :refer [match]]
+            [ring.util.response :refer [resource-response]]
             [ring.middleware.json :refer [wrap-json-response]]
-            [compojure.core :refer [GET defroutes]]
+            [compojure.core :refer [GET DELETE defroutes]]
             [compojure.route :as route]
             [ring.adapter.jetty :refer [run-jetty]]
             [health.database :as db]))
@@ -17,14 +18,25 @@
    :headers {"Content-Type" "text/plain"}
    :body "Page not found. :("})
 
-(defn page-patients [request]
+(defn get-patients [request]
   {:status 200
    :body (db/all-patients)})
+
+(defn delete-patient [id]
+  (try
+    (let [result (db/delete-patient (Integer/parseInt id))]
+      (match result
+             :ok {:status 200}
+             :not-found {:status 404}
+             [:fail error] {:status 500 :body error}))
+    (catch NumberFormatException e
+      {:status 400 :body "Expected a number."})))
 
 (defroutes app-raw
   (GET "/user/:id" [id :as request] (page-user request))
   (GET "/" [] (resource-response "index.html" {:root "public"}))
-  (GET "/patients" [request] (page-patients request))
+  (GET "/patients" [request] (get-patients request))
+  (DELETE "/patient/:id" [id] (delete-patient id))
   (route/resources "/")
   page-404)
 

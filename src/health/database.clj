@@ -20,13 +20,24 @@
 (defn add-patient [info]
   (insert! ds :patients info))
 
+(defn delete-patient [id]
+  (try
+    (let [result (delete! ds :patients {:id id})]
+     (if (> (:next.jdbc/update-count result) 0)
+       :ok
+       :not-found))
+    ; TODO catch PSQLException instead
+    (catch Throwable e [:fail (ex-message e)])))
+
 (comment
   (query ds ["select * from patients"])
-  (delete! ds :patients {:fullname "Mattew Judge"})
+  (query ds ["select * from patients where id = 5"])
+  (delete-patient "6")
+  (:next.jdbc/update-count (delete-patient 10))
   (insert! ds :patients {:fullname "Matt Judge"
-                              :gender "male"
-                              :birthdate (as-date "1994-08-02")
-                              :address "AU"
-                              :insurancenum 88888})
+                         :gender "male"
+                         :birthdate (as-date "1994-08-02")
+                         :address "AU"
+                         :insurancenum 88888})
   (as-date "1999-09-09")
   )
