@@ -3,7 +3,6 @@
 # Essential
 
 * Removal confirmation dialog.
-* Search.
 * Add.
 * Updating patient info.
 * Tests.
@@ -17,4 +16,9 @@
 # Nice to have
 
 * Bulk deletion.
-* Find a better way to assign ids to patients.
+* Find a better way to assign ids to patients (to fill in the gaps, mostly).
+* Improve search:
+    - male should not match female;
+    - match numbers only from start (e.g. 04 should not match 28042, same for
+        dates);
+    - search on enter.
