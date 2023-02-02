@@ -7,11 +7,16 @@
 (declare update-view)
 
 (def host "http://localhost:8080/")
+(def search-query (atom ""))
+
+(defn search []
+  (reset! search-query (-> js/document (.getElementById "search-bar") .-value))
+  (update-view))
 
 (d/defcomponent Controls [props]
   [:div.row
    [:input {:type "text" :id "search-bar" :placeholder "Find something..."}]
-   [:button "Search"]
+   [:button {:on-click (fn [e] (search))} "Search"]
    [:button "Add a patient"]])
 
 (defn delete-patient [id]
@@ -55,15 +60,18 @@
   [:main (Controls []) (Table patients)])
 
 (defn render [patients]
-  (d/render (Page patients) (js/document.getElementById "body")))
+  (d/render (Page patients) (-> js/document .-body)))
 
 ;(defn onload [] (println "I've loaded!"))
 ;(-> js/document .-body (.addEventListener "load" onload))
 
 ; TODO handle error statuses
 (defn update-view []
-  (go (let [response (<! (http/get (str host "patients")))]
-        (println (:body response))
-        (render (:body response)))))
+  ; TODO send @search-query as a parameter
+  (go
+    (let [opts {:query-params (if (empty? @search-query) {} {"q" @search-query})}
+          response (<! (http/get (str host "patients") opts))]
+      (println (:body response))
+      (render (:body response)))))
 
 (update-view)
