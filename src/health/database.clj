@@ -20,6 +20,12 @@
 (defn add-patient [info]
   (insert! ds :patients info))
 
+(defn find-patients [query-text]
+  ; TODO make search more intellegent
+  (query ds [(str "select * from patients where (fullname || ' ' || gender || ' '"
+                  " || birthdate || ' ' || address || ' ' || insurancenum) like ?")
+             (str "%" query-text "%")]))
+
 (defn delete-patient [id]
   (try
     (let [result (delete! ds :patients {:id id})]
@@ -32,6 +38,8 @@
 (comment
   (query ds ["select * from patients"])
   (query ds ["select * from patients where id = 5"])
+  (query ds ["select * from patients where (fullname || ' ' || gender || ' ' || birthdate || ' ' || address || ' ' || insurancenum) like ?" "%Alex%"])
+  (find-patients "Alex")
   (delete-patient "6")
   (:next.jdbc/update-count (delete-patient 10))
   (insert! ds :patients {:fullname "Matt Judge"
