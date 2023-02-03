@@ -2,9 +2,9 @@
 
 # Essential
 
-* Removal confirmation dialog.
-* Add.
+* Adding a patient.
 * Updating patient info.
+* Removal confirmation dialog.
 * Tests.
 
 # Bonus points

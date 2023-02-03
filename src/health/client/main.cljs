@@ -13,20 +13,32 @@
   (reset! search-query (-> js/document (.getElementById "search-bar") .-value))
   (update-view))
 
+(defn get-modal []
+  (-> js/document (.getElementById "modal-background")))
+
+(defn set-details-visibility [visible]
+  (let [modal (get-modal)]
+    (if visible
+      (-> modal .-classList (.remove "hidden"))
+      (-> modal .-classList (.add "hidden")))))
+
+(defn add-patient []
+  ; TODO clear details
+  (set-details-visibility true))
+
 (d/defcomponent Controls [props]
-  [:div.row
+  [:div.row.controls
    [:input {:type "text" :id "search-bar" :placeholder "Find something..."}]
    [:button {:on-click (fn [e] (search))} "Search"]
-   [:button "Add a patient"]])
+   [:button {:on-click (fn [e] (add-patient))} "Add a patient"]])
 
 (defn delete-patient [id]
-  ; TODO implement
   (go (let [response (<! (http/delete (str "patient/" id)))]
         (update-view))))
 
 (defn edit-patient [id]
-  ; TODO implement
-  (println (str "editing " id)))
+  ; TODO fill in the info
+  (set-details-visibility true))
 
 (d/defcomponent Actions [id]
   [:div
@@ -56,8 +68,26 @@
         [:td (:patients/insurancenum p)]
         [:td (Actions id)]]))])
 
+(d/defcomponent Modal [props]
+  [:div.hidden {:id "modal-background"}
+   [:div.modal {:id "details"}
+    [:label "Full name:" [:input {:type "text" :id "fullname" :placeholder "John Doe"}]]
+    [:label "Gender:" [:select {:id "gender"}
+                       [:option {:value "female"} "Female"]
+                       [:option {:value "male"} "Male"]
+                       [:option {:value "other"} "Other"]]]
+    [:label "Birthdate:" [:input {:type "date" :id "birthdate" :placeholder "1981-12-31"}]]
+    [:label "Address:" [:input {:type "text" :id "address" :placeholder "Finland"}]]
+    [:div.row
+     [:button "Submit"]
+     [:button {:on-click (fn [e] (set-details-visibility false))} "Cancel"]]
+    ]])
+
 (d/defcomponent Page [patients]
-  [:main (Controls []) (Table patients)])
+  [:main
+   (Controls [])
+   (Table patients)
+   (Modal [])])
 
 (defn render [patients]
   (d/render (Page patients) (-> js/document .-body)))
