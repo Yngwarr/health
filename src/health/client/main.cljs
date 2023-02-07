@@ -7,6 +7,8 @@
 (declare update-view)
 
 (def search-query (atom ""))
+(def now-editing (atom nil))
+(def patients-info (atom []))
 
 (defn search []
   (reset! search-query (-> js/document (.getElementById "search-bar") .-value))
@@ -28,14 +30,14 @@
    :address (-> js/document (.getElementById "address") .-value)
    :insurancenum (-> js/document (.getElementById "insurancenum") .-value)})
 
-(defn clear-input
-  ([id] (clear-input id ""))
+(defn set-input
+  ([id] (set-input id ""))
   ([id default] (set! (-> js/document (.getElementById id) .-value) default)))
 
 (defn clear-details []
   (doseq [id ["fullname" "birthdate" "address" "insurancenum"]]
-    (clear-input id))
-  (clear-input "gender" "female"))
+    (set-input id))
+  (set-input "gender" "female"))
 
 (defn add-patient []
   (clear-details)
@@ -45,8 +47,12 @@
   ; TODO handle edit
   (let [details (gather-details)]
     (prn details)
-    ; TODO hide details on success
-    (go (<! (http/post "patient" {:transit-params details})))))
+    ; TODO handle fail
+    (go (let [result (<! (http/post "patient" {:transit-params details}))]
+          (if (= (:status result) 200)
+            (do (set-details-visibility false)
+                (update-view)
+                (reset! now-editing nil)))))))
 
 (d/defcomponent Controls [props]
   [:div.row.controls
@@ -58,9 +64,19 @@
   (go (let [response (<! (http/delete (str "patient/" id)))]
         (update-view))))
 
+(defn fill-details [patient]
+  (set-input "fullname" (:patients/fullname patient))
+  (set-input "gender" (:patients/gender patient))
+  (set-input "birthdate" (:patients/birthdate patient))
+  (set-input "address" (:patients/address patient))
+  (set-input "insurancenum" (:patients/insurancenum patient)))
+
 (defn edit-patient [id]
-  ; TODO fill in the info
-  (set-details-visibility true))
+  (let [patient (first (filter #(= (:patients/id %) id) @patients-info))]
+    (prn patient)
+    (reset! now-editing id)
+    (fill-details patient)
+    (set-details-visibility true)))
 
 (d/defcomponent Actions [id]
   [:div
@@ -118,16 +134,16 @@
 (defn render-error [response]
   (d/render [:main response] (-> js/document .-body)))
 
-;(defn onload [] (println "I've loaded!"))
-;(-> js/document .-body (.addEventListener "load" onload))
-
 ; TODO improve error handling
 (defn update-view []
   (go (let [opts {:query-params (if (empty? @search-query) {} {"q" @search-query})}
             response (<! (http/get "patients" opts))]
         (prn (:body response))
         (if (= (:status response) 200)
-          (render (:body response))
+          (do
+            ; TODO cast to hash-map
+            (reset! patients-info (:body response))
+            (render @patients-info))
           (render-error (:body response))))))
 
 (update-view)

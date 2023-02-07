@@ -25,8 +25,8 @@
   {:status 200
    :body (let [query-text (-> request :params :q)]
            (if (nil? query-text)
-             (db/all-patients)
-             (db/find-patients query-text)))})
+             (db/dates->str (db/all-patients))
+             (db/dates->str (db/find-patients query-text))))})
 
 (defn delete-patient [id]
   (try
@@ -45,10 +45,10 @@
     (let [result (db/add-patient (:body-params request))]
       (match result
              :ok {:status 200}
+        ; TODO bad value for timestamp must return 400
              [:fail error] {:status 500 :body error}))
     (catch Throwable e
-      {:status 500 :body (ex-message e)}))
-  {:status 200})
+      {:status 500 :body (ex-message e)})))
 
 (defroutes app-raw
   (GET "/user/:id" [id] (page-user id))

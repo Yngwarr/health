@@ -4,6 +4,8 @@
             [next.jdbc.sql :refer [insert!, query, update!, delete!]]
             [next.jdbc.types :refer [as-date]]))
 
+(set! *print-namespace-maps* false)
+
 (def db {:dbtype "postgres"
          :dbname "postgres"
          :user "postgres"
@@ -13,7 +15,8 @@
 
 (def ds (jdbc/get-datasource db))
 
-(set! *print-namespace-maps* false)
+(defn dates->str [patients]
+  (map #(assoc % :patients/birthdate (str (:patients/birthdate %))) patients))
 
 (defn all-patients []
   (query ds ["select * from patients"]))
@@ -44,7 +47,8 @@
 
 (comment
   (query ds ["select * from patients"])
-  (query ds ["select * from patients where id = 5"])
+  (str (:patients/birthdate (first (query ds ["select birthdate from patients where id = 16"]))))
+  (dates->str (all-patients))
   (query ds ["select * from patients where (fullname || ' ' || gender || ' ' || birthdate || ' ' || address || ' ' || insurancenum) like ?" "%Alex%"])
   (find-patients "Alex")
   (delete-patient "6")

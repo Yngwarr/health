@@ -16,7 +16,7 @@
        (rand-nth ["Lione" "Turilli" "Paeth" "Staropoli" "Carbonera"])))
 
 (defn random-date []
-  (as-date (str (+ 1910 (rand-int 100)) "-" (+ 1 (rand-int 11)) "-" (+ 1 (rand-int 27)))))
+  (str (+ 1910 (rand-int 100)) "-" (+ 1 (rand-int 11)) "-" (+ 1 (rand-int 27))))
 
 (defn populate-db [amount]
   (doseq [x (range amount)]
@@ -24,7 +24,7 @@
                      :gender (rand-nth ["male" "female" "other"])
                      :birthdate (random-date)
                      :address (rand-nth ["Finland" "Real World"])
-                     :insurancenum (+ 100000 (rand-int 999999999))})))
+                     :insurancenum (str (+ 100000 (rand-int 999999999)))})))
 
 (comment
   (def server (run-jetty app {:port 8080 :join? false}))
