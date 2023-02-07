@@ -45,7 +45,20 @@
     ; TODO catch PSQLException instead
     (catch Throwable e [:fail (ex-message e)])))
 
+(defn patch-patient [id info]
+  (try
+    (let [entry (assoc info :birthdate (as-date (:birthdate info)))
+          result (update! ds :patients entry {:id id})]
+      (if (> (:next.jdbc/update-count result) 0)
+        :ok
+        :not-found))
+    ; TODO catch PSQLException instead
+    ; TODO handle different cases somehow
+    (catch Throwable e [:fail (ex-message e)])))
+
 (comment
+  (update! ds :patients {:address "Miami"} {:id 27})
+  (patch-patient 27 {:birthdate "cucumber"})
   (query ds ["select * from patients"])
   (str (:patients/birthdate (first (query ds ["select birthdate from patients where id = 16"]))))
   (dates->str (all-patients))

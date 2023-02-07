@@ -4,7 +4,7 @@
             [ring.middleware.params :refer [wrap-params]]
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.middleware.json :refer [wrap-json-response]]
-            [compojure.core :refer [GET POST DELETE defroutes]]
+            [compojure.core :refer [GET POST DELETE PATCH defroutes]]
             [compojure.route :as route]
             [ring.adapter.jetty :refer [run-jetty]]
             [muuntaja.middleware :as mw]
@@ -32,14 +32,25 @@
   (try
     (let [result (db/delete-patient (Integer/parseInt id))]
       (match result
-             :ok {:status 200}
-             :not-found {:status 404}
-             [:fail error] {:status 500 :body error}))
+        :ok {:status 200}
+        :not-found {:status 404}
+        [:fail error] {:status 500 :body error}))
     (catch NumberFormatException e
       {:status 400 :body "Expected a number."})))
 
+(defn patch-patient [request]
+  (try
+    (let [id (Integer/parseInt (-> request :route-params :id))
+          info (:body-params request)
+          result (db/patch-patient id info)]
+      (match result
+        :ok {:status 200}
+        :not-found {:status 404}
+        [:fail error] {:status 500 :body error}))
+    (catch NumberFormatException e
+      {:status 400 :body "Expected a number as an id."})))
+
 (defn add-patient [request]
-  (prn (:body-params request))
   (try
     ; TODO validate info
     (let [result (db/add-patient (:body-params request))]
@@ -54,8 +65,10 @@
   (GET "/user/:id" [id] (page-user id))
   (GET "/" [] (resource-response "index.html" {:root "public"}))
   (GET "/patients" request (get-patients request))
-  (DELETE "/patient/:id" [id] (delete-patient id))
   (POST "/patient" request (add-patient request))
+  (DELETE "/patient/:id" [id] (delete-patient id))
+  ;(PATCH "/patient/:id" [id] (patch-patient id))
+  (PATCH "/patient/:id" request (patch-patient request))
   (route/resources "/")
   page-404)
 

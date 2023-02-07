@@ -21,7 +21,9 @@
   (let [modal (get-modal)]
     (if visible
       (-> modal .-classList (.remove "hidden"))
-      (-> modal .-classList (.add "hidden")))))
+      (do
+        (-> modal .-classList (.add "hidden"))
+        (reset! now-editing nil)))))
 
 (defn gather-details []
   {:fullname (-> js/document (.getElementById "fullname") .-value)
@@ -43,16 +45,20 @@
   (clear-details)
   (set-details-visibility true))
 
+(defn submit-request [details]
+  (if (nil? @now-editing)
+    (http/post "patient" {:transit-params details})
+    (http/patch (str "patient/" @now-editing) {:transit-params details})))
+
 (defn submit-details []
   ; TODO handle edit
   (let [details (gather-details)]
     (prn details)
     ; TODO handle fail
-    (go (let [result (<! (http/post "patient" {:transit-params details}))]
+    (go (let [result (<! (submit-request details))]
           (if (= (:status result) 200)
             (do (set-details-visibility false)
-                (update-view)
-                (reset! now-editing nil)))))))
+                (update-view)))))))
 
 (d/defcomponent Controls [props]
   [:div.row.controls
