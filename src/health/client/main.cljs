@@ -6,7 +6,6 @@
 
 (declare update-view)
 
-(def host "http://localhost:8080/")
 (def search-query (atom ""))
 
 (defn search []
@@ -22,9 +21,32 @@
       (-> modal .-classList (.remove "hidden"))
       (-> modal .-classList (.add "hidden")))))
 
+(defn gather-details []
+  {:fullname (-> js/document (.getElementById "fullname") .-value)
+   :gender (-> js/document (.getElementById "gender") .-value)
+   :birthdate (-> js/document (.getElementById "birthdate") .-value)
+   :address (-> js/document (.getElementById "address") .-value)
+   :insurancenum (-> js/document (.getElementById "insurancenum") .-value)})
+
+(defn clear-input
+  ([id] (clear-input id ""))
+  ([id default] (set! (-> js/document (.getElementById id) .-value) default)))
+
+(defn clear-details []
+  (doseq [id ["fullname" "birthdate" "address" "insurancenum"]]
+    (clear-input id))
+  (clear-input "gender" "female"))
+
 (defn add-patient []
-  ; TODO clear details
+  (clear-details)
   (set-details-visibility true))
+
+(defn submit-details []
+  ; TODO handle edit
+  (let [details (gather-details)]
+    (println details)
+    ; TODO hide details on success
+    (go (<! (http/post "patient" {:transit-params details})))))
 
 (d/defcomponent Controls [props]
   [:div.row.controls
@@ -78,8 +100,9 @@
                        [:option {:value "other"} "Other"]]]
     [:label "Birthdate:" [:input {:type "date" :id "birthdate" :placeholder "1981-12-31"}]]
     [:label "Address:" [:input {:type "text" :id "address" :placeholder "Finland"}]]
+    [:label "Insurance #:" [:input {:type "number" :id "insurancenum" :placeholder "01101111010101101"}]]
     [:div.row
-     [:button "Submit"]
+     [:button {:on-click (fn [e] (submit-details))} "Submit"]
      [:button {:on-click (fn [e] (set-details-visibility false))} "Cancel"]]
     ]])
 
@@ -92,16 +115,19 @@
 (defn render [patients]
   (d/render (Page patients) (-> js/document .-body)))
 
+(defn render-error [response]
+  (d/render [:main response] (-> js/document .-body)))
+
 ;(defn onload [] (println "I've loaded!"))
 ;(-> js/document .-body (.addEventListener "load" onload))
 
-; TODO handle error statuses
+; TODO improve error handling
 (defn update-view []
-  ; TODO send @search-query as a parameter
-  (go
-    (let [opts {:query-params (if (empty? @search-query) {} {"q" @search-query})}
-          response (<! (http/get (str host "patients") opts))]
-      (println (:body response))
-      (render (:body response)))))
+  (go (let [opts {:query-params (if (empty? @search-query) {} {"q" @search-query})}
+            response (<! (http/get "patients" opts))]
+        (println (:body response))
+        (if (= (:status response) 200)
+          (render (:body response))
+          (render-error (:body response))))))
 
 (update-view)

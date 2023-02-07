@@ -4,14 +4,14 @@ create table patients (
     Gender varchar(255) not null,
     Birthdate date not null,
     Address varchar(255) not null,
-    InsuranceNum bigint not null
+    InsuranceNum varchar(32) not null
 );
 
 insert into patients (FullName, Gender, Birthdate, Address, InsuranceNum)
-    values ('Joseph Leslie Armstrong', 'male', date '1950-12-27', 'Bournemouth, England, UK', 1);
+    values ('Joseph Leslie Armstrong', 'male', date '1950-12-27', 'Bournemouth, England, UK', '1');
 insert into patients (FullName, Gender, Birthdate, Address, InsuranceNum)
-    values ('Edsger Wybe Dijkstra', 'male', date '1930-05-11', 'Rotterdam, Netherlands', 2);
+    values ('Edsger Wybe Dijkstra', 'male', date '1930-05-11', 'Rotterdam, Netherlands', '2');
 insert into patients (FullName, Gender, Birthdate, Address, InsuranceNum)
-    values ('Donald Ervin Knuth', 'male', date '1938-01-10', 'Milwaukee, Wisconsin, US', 3);
+    values ('Donald Ervin Knuth', 'male', date '1938-01-10', 'Milwaukee, Wisconsin, US', '3');
 insert into patients (FullName, Gender, Birthdate, Address, InsuranceNum)
-    values ('Zoe Griffiths', 'female', date '1989-11-26', 'Bournemouth, England, UK', 4);
+    values ('Zoe Griffiths', 'female', date '1989-11-26', 'Bournemouth, England, UK', '4');

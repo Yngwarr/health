@@ -1,5 +1,6 @@
 (ns health.database
-  (:require [next.jdbc :as jdbc]
+  (:require [clojure.core.match :refer [match]]
+            [next.jdbc :as jdbc]
             [next.jdbc.sql :refer [insert!, query, update!, delete!]]
             [next.jdbc.types :refer [as-date]]))
 
@@ -18,7 +19,13 @@
   (query ds ["select * from patients"]))
 
 (defn add-patient [info]
-  (insert! ds :patients info))
+  (try
+    (let [entry (assoc info :birthdate (as-date (:birthdate info)))
+          result (insert! ds :patients entry)]
+      (match result
+        [:fail error] result
+        :else :ok))
+    (catch Throwable e [:fail (ex-message e)])))
 
 (defn find-patients [query-text]
   ; TODO make search more intellegent
@@ -42,10 +49,10 @@
   (find-patients "Alex")
   (delete-patient "6")
   (:next.jdbc/update-count (delete-patient 10))
-  (insert! ds :patients {:fullname "Matt Judge"
-                         :gender "male"
-                         :birthdate (as-date "1994-08-02")
-                         :address "AU"
-                         :insurancenum 88888})
+  (add-patient {:fullname "Matt Judge"
+                :gender "male"
+                :birthdate (as-date "1994-08-02")
+                :address "AU"
+                :insurancenum "9999111199991111"})
   (as-date "1999-09-09")
   )
