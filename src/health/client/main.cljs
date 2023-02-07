@@ -44,7 +44,7 @@
 (defn submit-details []
   ; TODO handle edit
   (let [details (gather-details)]
-    (println details)
+    (prn details)
     ; TODO hide details on success
     (go (<! (http/post "patient" {:transit-params details})))))
 
@@ -125,7 +125,7 @@
 (defn update-view []
   (go (let [opts {:query-params (if (empty? @search-query) {} {"q" @search-query})}
             response (<! (http/get "patients" opts))]
-        (println (:body response))
+        (prn (:body response))
         (if (= (:status response) 200)
           (render (:body response))
           (render-error (:body response))))))
