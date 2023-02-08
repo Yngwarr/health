@@ -10,12 +10,6 @@
             [muuntaja.middleware :as mw]
             [health.database :as db]))
 
-(defn page-user [request]
-  (let [user (-> request :params :id)]
-    {:status 200
-     :headers {"Content-Type" "text/plain"}
-     :body (format "Hello there, %s!" user)}))
-
 (defn page-404 [request]
   {:status 404
    :headers {"Content-Type" "text/plain"}
@@ -62,12 +56,10 @@
       {:status 500 :body (ex-message e)})))
 
 (defroutes app-raw
-  (GET "/user/:id" [id] (page-user id))
   (GET "/" [] (resource-response "index.html" {:root "public"}))
   (GET "/patients" request (get-patients request))
   (POST "/patient" request (add-patient request))
   (DELETE "/patient/:id" [id] (delete-patient id))
-  ;(PATCH "/patient/:id" [id] (patch-patient id))
   (PATCH "/patient/:id" request (patch-patient request))
   (route/resources "/")
   page-404)

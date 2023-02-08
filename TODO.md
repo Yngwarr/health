@@ -2,8 +2,6 @@
 
 # Essential
 
-* Adding a patient.
-* Updating patient info.
 * Removal confirmation dialog.
 * Tests.
 
