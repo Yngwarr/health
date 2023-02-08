@@ -6,25 +6,38 @@
 
 (set! *print-namespace-maps* false)
 
-(def db {:dbtype "postgres"
-         :dbname "postgres"
-         :user "postgres"
-         :password "deathstar"
-         :host "localhost"
-         :port 5432})
+(def ^:dynamic *testing* false)
 
-(def ds (jdbc/get-datasource db))
+; TODO move database configuration to config files
+(def ds
+  (jdbc/get-datasource {:dbtype "postgres"
+                        :dbname "postgres"
+                        :user "postgres"
+                        :password "deathstar"
+                        :host "localhost"
+                        :port 5432}))
+
+(def testing-ds
+  (jdbc/get-datasource {:dbtype "postgres"
+                        :dbname "postgres"
+                        :user "postgres"
+                        :password "deathstar"
+                        :host "localhost"
+                        :port 5555}))
+
+(defn get-ds []
+  (if *testing* testing-ds ds))
 
 (defn dates->str [patients]
   (map #(assoc % :patients/birthdate (str (:patients/birthdate %))) patients))
 
 (defn all-patients []
-  (query ds ["select * from patients"]))
+  (query (get-ds) ["select * from patients"]))
 
 (defn add-patient [info]
   (try
     (let [entry (assoc info :birthdate (as-date (:birthdate info)))
-          result (insert! ds :patients entry)]
+          result (insert! (get-ds) :patients entry)]
       (match result
         [:fail error] result
         :else :ok))
@@ -32,13 +45,13 @@
 
 (defn find-patients [query-text]
   ; TODO make search more intellegent
-  (query ds [(str "select * from patients where (fullname || ' ' || gender || ' '"
+  (query (get-ds) [(str "select * from patients where (fullname || ' ' || gender || ' '"
                   " || birthdate || ' ' || address || ' ' || insurancenum) like ?")
              (str "%" query-text "%")]))
 
 (defn delete-patient [id]
   (try
-    (let [result (delete! ds :patients {:id id})]
+    (let [result (delete! (get-ds) :patients {:id id})]
      (if (> (:next.jdbc/update-count result) 0)
        :ok
        :not-found))
@@ -48,7 +61,7 @@
 (defn patch-patient [id info]
   (try
     (let [entry (assoc info :birthdate (as-date (:birthdate info)))
-          result (update! ds :patients entry {:id id})]
+          result (update! (get-ds) :patients entry {:id id})]
       (if (> (:next.jdbc/update-count result) 0)
         :ok
         :not-found))
@@ -57,7 +70,7 @@
     (catch Throwable e [:fail (ex-message e)])))
 
 (comment
-  (update! ds :patients {:address "Miami"} {:id 27})
+  (update! (get-ds) :patients {:address "Miami"} {:id 27})
   (patch-patient 27 {:birthdate "cucumber"})
   (query ds ["select * from patients"])
   (str (:patients/birthdate (first (query ds ["select birthdate from patients where id = 16"]))))

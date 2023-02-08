@@ -71,11 +71,8 @@
         (update-view))))
 
 (defn fill-details [patient]
-  (set-input "fullname" (:patients/fullname patient))
-  (set-input "gender" (:patients/gender patient))
-  (set-input "birthdate" (:patients/birthdate patient))
-  (set-input "address" (:patients/address patient))
-  (set-input "insurancenum" (:patients/insurancenum patient)))
+  (doseq [prop-name ["fullname" "gender" "birthdate" "address" "insurancenum"]]
+    (set-input prop-name ((keyword "patients" prop-name) patient))))
 
 (defn edit-patient [id]
   (let [patient (first (filter #(= (:patients/id %) id) @patients-info))]

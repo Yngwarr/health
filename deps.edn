@@ -14,6 +14,10 @@
         org.postgresql/postgresql {:mvn/version "42.5.1"}}
  :aliases
  {:dev {:extra-paths ["test" "dev" "dev-resources"]
-        :extra-deps {com.bhauman/figwheel-main {:mvn/version "0.2.18"}}}
+        :extra-deps {com.bhauman/figwheel-main {:mvn/version "0.2.18"}
+                     lambdaisland/kaocha {:mvn/version "1.77.1236"}}}
+  :test {:extra-paths ["test"]
+         :main-opts ["-m" "kaocha.runner"]
+         :extra-deps {lambdaisland/kaocha {:mvn/version "1.77.1236"}}}
   :uberjar {:extra-deps {uberdeps/uberdeps {:mvn/version "1.2.0"}}
             :main-opts ["-m" "uberdeps.uberjar" "--target" "out.jar"]}}}

@@ -73,3 +73,6 @@
 (defn -main [& args]
   (println "Starting the server...")
   (run-jetty app {:port 8080 :join? true}))
+
+(comment
+  (get-patients {}))
