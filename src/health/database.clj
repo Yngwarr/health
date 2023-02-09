@@ -1,7 +1,7 @@
 (ns health.database
   (:require [clojure.core.match :refer [match]]
-            [next.jdbc :as jdbc]
-            [next.jdbc.sql :refer [insert!, query, update!, delete!]]
+            [next.jdbc :as jdbc ]
+            [next.jdbc.sql :refer [insert! query update! delete!]]
             [next.jdbc.types :refer [as-date]]))
 
 (set! *print-namespace-maps* false)
@@ -68,6 +68,9 @@
     ; TODO catch PSQLException instead
     ; TODO handle different cases somehow
     (catch Throwable e [:fail (ex-message e)])))
+
+(defn truncate-test []
+  (jdbc/execute! testing-ds "truncate patients cascade"))
 
 (comment
   (update! (get-ds) :patients {:address "Miami"} {:id 27})

@@ -3,14 +3,16 @@
             [clojure.java.shell :refer [sh]]
             [kaocha.repl :as k]
             [health.backend :as sut]
-            [health.database :refer [*testing*]]))
+            [health.database :refer [*testing* truncate-test]]))
 
 (defn fix-db [t]
+  (truncate-test)
   (binding [*testing* true] (t)))
 
 (use-fixtures :once fix-db)
 
-(deftest getting
+(deftest inserting
+  ; TODO add inserting
   (is (= {:status 200 :body '()} (sut/get-patients {}))))
 
 (comment
