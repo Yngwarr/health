@@ -80,6 +80,7 @@
   (mod10-check "1230")
   (mod10 "123412341234123")
   (mod10 "123456789012345")
+  (mod10 "100000000000000")
   (subs "1230" 0 (dec (count "1230")))
   (validate-patient {:fullname "Matt Judge"
     :gender "male"

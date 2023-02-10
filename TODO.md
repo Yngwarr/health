@@ -2,13 +2,11 @@
 
 # Essential
 
-* Tests.
-* Validation.
 * Extract configs from the code.
-* CI.
 
 # Bonus points
 
+* CI.
 * Removal confirmation dialog.
 * Table pagination.
 * Kubernetification.

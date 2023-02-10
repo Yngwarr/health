@@ -1,76 +1,51 @@
 (ns health.database
   (:require [clojure.core.match :refer [match]]
-            [next.jdbc :as jdbc ]
+            [next.jdbc :as jdbc]
             [next.jdbc.sql :refer [insert! query update! delete!]]
             [next.jdbc.types :refer [as-date]]))
 
 (set! *print-namespace-maps* false)
 
-(def ^:dynamic *testing* false)
-
-; TODO move database configuration to config files
-(def ds
-  (jdbc/get-datasource {:dbtype "postgres"
-                        :dbname "postgres"
-                        :user "postgres"
-                        :password "deathstar"
-                        :host "localhost"
-                        :port 5432}))
-
-(def testing-ds
-  (jdbc/get-datasource {:dbtype "postgres"
-                        :dbname "postgres"
-                        :user "postgres"
-                        :password "deathstar"
-                        :host "localhost"
-                        :port 5555}))
-
-(defn get-ds []
-  (if *testing* testing-ds ds))
-
 (defn dates->str [patients]
   (map #(assoc % :patients/birthdate (str (:patients/birthdate %))) patients))
 
-(defn all-patients []
-  (query (get-ds) ["select * from patients"]))
+(defn all-patients [ds]
+  (query ds ["select * from patients"]))
 
-(defn add-patient [info]
+(defn add-patient [ds info]
   (try
     (let [entry (assoc info :birthdate (as-date (:birthdate info)))
-          result (insert! (get-ds) :patients entry)]
+          result (insert! ds :patients entry)]
       (match result
         [:fail error] result
         :else :ok))
     (catch Throwable e [:fail (ex-message e)])))
 
-(defn find-patients [query-text]
+(defn find-patients [ds query-text]
   ; TODO make search more intellegent
-  (query (get-ds) [(str "select * from patients where (fullname || ' ' || gender || ' '"
+  (query ds [(str "select * from patients where (fullname || ' ' || gender || ' '"
                   " || birthdate || ' ' || address || ' ' || insurancenum) like ?")
              (str "%" query-text "%")]))
 
-(defn delete-patient [id]
+(defn delete-patient [ds id]
   (try
-    (let [result (delete! (get-ds) :patients {:id id})]
+    (let [result (delete! ds :patients {:id id})]
      (if (> (:next.jdbc/update-count result) 0)
        :ok
        :not-found))
     ; TODO catch PSQLException instead
     (catch Throwable e [:fail (ex-message e)])))
 
-(defn patch-patient [id info]
+(defn patch-patient [ds id info]
   (try
     (let [entry (assoc info :birthdate (as-date (:birthdate info)))
-          result (update! (get-ds) :patients entry {:id id})]
+          result (update! ds :patients entry {:id id})]
       (if (> (:next.jdbc/update-count result) 0)
         :ok
         :not-found))
     ; TODO catch PSQLException instead
     ; TODO handle different cases somehow
     (catch Throwable e [:fail (ex-message e)])))
-
-(defn truncate-test []
-  (jdbc/execute! testing-ds "truncate patients cascade"))
 
 (comment
   (update! (get-ds) :patients {:address "Miami"} {:id 27})

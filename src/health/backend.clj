@@ -8,24 +8,34 @@
             [compojure.route :as route]
             [ring.adapter.jetty :refer [run-jetty]]
             [muuntaja.middleware :as mw]
+            [next.jdbc :refer [get-datasource]]
             [health.database :as db]
             [health.common.validation :refer [validate-patient]]))
+
+; TODO move database configuration to config files
+(def backend-ds
+  (get-datasource {:dbtype "postgres"
+                   :dbname "postgres"
+                   :user "postgres"
+                   :password "deathstar"
+                   :host "localhost"
+                   :port 5432}))
 
 (defn page-404 [request]
   {:status 404
    :headers {"Content-Type" "text/plain"}
    :body "Page not found. :("})
 
-(defn get-patients [request]
+(defn get-patients [ds request]
   {:status 200
    :body (let [query-text (-> request :params :q)]
            (if (nil? query-text)
-             (db/dates->str (db/all-patients))
-             (db/dates->str (db/find-patients query-text))))})
+             (db/dates->str (db/all-patients ds))
+             (db/dates->str (db/find-patients ds query-text))))})
 
-(defn delete-patient [id]
+(defn delete-patient [ds id]
   (try
-    (let [result (db/delete-patient (Integer/parseInt id))]
+    (let [result (db/delete-patient ds (Integer/parseInt id))]
       (match result
         :ok {:status 200}
         :not-found {:status 404}
@@ -33,13 +43,13 @@
     (catch NumberFormatException e
       {:status 400 :body "Expected a number."})))
 
-(defn patch-patient [request]
+(defn patch-patient [ds request]
   (try
     (let [id (Integer/parseInt (-> request :route-params :id))
           info (:body-params request)
           validation-result (validate-patient info)]
       (match validation-result
-        :ok (let [result (db/patch-patient id info)]
+        :ok (let [result (db/patch-patient ds id info)]
               (match result
                 :ok {:status 200}
                 :not-found {:status 404}
@@ -49,12 +59,12 @@
     (catch NumberFormatException e
       {:status 400 :body "Expected a number as an id."})))
 
-(defn add-patient [request]
+(defn add-patient [ds request]
   (try
     (let [info (:body-params request)
           validation-result (validate-patient info)]
       (match validation-result
-        :ok (let [result (db/add-patient (:body-params request))]
+        :ok (let [result (db/add-patient ds (:body-params request))]
               (match result
                 :ok {:status 200}
                 [:fail error] {:status 500 :body error}))
@@ -65,10 +75,10 @@
 
 (defroutes app-raw
   (GET "/" [] (resource-response "index.html" {:root "public"}))
-  (GET "/patients" request (get-patients request))
-  (POST "/patient" request (add-patient request))
-  (DELETE "/patient/:id" [id] (delete-patient id))
-  (PATCH "/patient/:id" request (patch-patient request))
+  (GET "/patients" request (get-patients backend-ds request))
+  (POST "/patient" request (add-patient backend-ds request))
+  (DELETE "/patient/:id" [id] (delete-patient backend-ds id))
+  (PATCH "/patient/:id" request (patch-patient backend-ds request))
   (route/resources "/")
   page-404)
 
@@ -83,10 +93,9 @@
   (run-jetty app {:port 8080 :join? true}))
 
 (comment
-  (get-patients {})
-  (add-patient {:body-params {:fullname "Igor"
-                              :gender "male"
-                              :birthdate "1342-12-12"
-                              :address "Los Santos"
-                              :insurancenum "1234123412341238"}})
-  )
+  (get-patients backend-ds {:params {:q "Rock"}})
+  (add-patient backend-ds {:body-params {:fullname "Igor"
+                                         :gender "male"
+                                         :birthdate "1342-12-12"
+                                         :address "Los Santos"
+                                         :insurancenum "1234123412341238"}}))

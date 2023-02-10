@@ -1,3 +1,9 @@
 #!/bin/bash
 
-psql -d postgres -h localhost -p 5432 -U postgres -W
+PORT=5432
+
+if [[ -n "$1" ]] ; then
+    PORT="$1"
+fi
+
+psql -d postgres -h localhost -p "$PORT" -U postgres -W

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -x
+#set -x
 
 pushd './containers' > /dev/null
 ./build.sh test keep
