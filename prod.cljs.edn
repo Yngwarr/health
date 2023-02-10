@@ -1,0 +1,3 @@
+{:main health.client.main
+ :optimizations :advanced
+ :output-to "resources/public/js/compiled/app.js"}
