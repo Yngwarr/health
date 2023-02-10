@@ -3,7 +3,8 @@
   (:require [cljs.core.async :refer [<!]]
             [cljs.core.match :refer-macros [match]]
             [dumdom.core :as d]
-            [cljs-http.client :as http]))
+            [cljs-http.client :as http]
+            [health.common.validation :as v]))
 
 (declare update-view)
 
@@ -56,17 +57,19 @@
     (http/post "patient" {:transit-params details})
     (http/patch (str "patient/" @now-editing) {:transit-params details})))
 
-(defn update-details-status [status]
-  (prn status)
-  (doseq [pair (seq status)]
-    (let [[id error] pair
-          input (get-element (name id))
-          error-text (-> js/document (.querySelector (str "#" (name id) " ~ .error-text")))]
-      (if (= error "ok")
+(defn update-error [id error]
+  (let [input (get-element (name id))
+        error-text (-> js/document (.querySelector (str "#" (name id) " ~ .error-text")))]
+      ; I don't know why, but server sends "ok" instead of :ok
+      (if (some #{error} '("ok" :ok))
         (-> input .-classList (.remove "error"))
         (do
           (-> (get-element (name id)) .-classList (.add "error"))
-          (set! (-> error-text .-innerText) (last error)))))))
+          (set! (-> error-text .-innerText) (last error))))))
+
+(defn update-details-status [status]
+  (doseq [pair (seq status)]
+    (update-error (first pair) (last pair))))
 
 (defn handle-submit-error [body]
   (if (map? body)
@@ -136,7 +139,10 @@
   [:div.hidden {:id "modal-background"}
    [:div.modal {:id "details"}
     [:label "Full name:"
-     [:input {:type "text" :id "fullname" :placeholder "John Doe"}]
+     [:input {:type "text"
+              :id "fullname"
+              :placeholder "John Doe"
+              :on-blur (fn [e] (update-error :fullname (v/validate-fullname (-> e .-target .-value))))}]
      [:span.error-text "Error text."]]
     [:label "Gender:" [:select {:id "gender"}
                        [:option {:value "female"} "Female"]
@@ -144,13 +150,22 @@
                        [:option {:value "other"} "Other"]]
      [:span.error-text "Error text."]]
     [:label "Birthdate:"
-     [:input {:type "date" :id "birthdate" :placeholder "1981-12-31"}]
+     [:input {:type "date"
+              :id "birthdate"
+              :placeholder "1981-12-31"
+              :on-blur (fn [e] (update-error :birthdate (v/validate-birthdate (-> e .-target .-value))))}]
      [:span.error-text "Error text."]]
     [:label "Address:"
-     [:input {:type "text" :id "address" :placeholder "Finland"}]
+     [:input {:type "text"
+              :id "address"
+              :placeholder "Finland"
+              :on-blur (fn [e] (update-error :address (v/validate-address (-> e .-target .-value))))}]
      [:span.error-text "Error text."]]
     [:label "Insurance #:"
-     [:input {:type "number" :id "insurancenum" :placeholder "01101111010101101"}]
+     [:input {:type "number"
+              :id "insurancenum"
+              :placeholder "01101111010101101"
+              :on-blur (fn [e] (update-error :insurancenum (v/validate-insurance-num (-> e .-target .-value))))}]
      [:span.error-text "Error text."]]
     [:div.row
      [:button {:on-click (fn [e] (submit-details))} "Submit"]
@@ -169,7 +184,7 @@
 (defn render-error [response]
   (d/render [:main response] (-> js/document .-body)))
 
-; TODO improve error handling
+; TODO show nicer errors instead of dumping what server have sent
 (defn update-view []
   (go (let [opts {:query-params (if (empty? @search-query) {} {"q" @search-query})}
             response (<! (http/get "patients" opts))]

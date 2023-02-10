@@ -6,12 +6,28 @@
   #?(:clj (Character/digit digit 10)
      :cljs (js/parseInt digit 10)))
 
+(defn validate-not-empty [value error-msg]
+  (if (empty? value)
+    [:fail error-msg]
+    :ok))
+
+(defn validate-fullname [value]
+  (validate-not-empty value "Full name must be set."))
+
+(defn validate-gender [value]
+  (if (some #{value} '("female" "male" "other"))
+    :ok
+    [:fail "Expected 'male', 'female' or 'other' as gender."]))
+
 (defn validate-birthdate [date]
   (cond
     (not (string? date)) [:fail "Birthdate must be a string."]
     ; TODO guard against invalid combinations of day and month
     (not (re-matches #"\d{4}-\d{2}-\d{2}" date)) [:fail "Birthdate format should be YYYY-MM-DD"]
     :else :ok))
+
+(defn validate-address [value]
+  (validate-not-empty value "Address must be set."))
 
 (defn is-odd? [n]
   (= (mod n 2) 1))
@@ -50,16 +66,10 @@
 
 (defn validate-patient [info]
   (if (map? info)
-    (let [result {:fullname (if (empty? (:fullname info))
-                              [:fail "Full name must be set."]
-                              :ok)
-                  :gender (if (some #{(:gender info)} '("female" "male" "other"))
-                            :ok
-                            [:fail "Expected 'male', 'female' or 'other' as gender."])
+    (let [result {:fullname (validate-fullname (:fullname info))
+                  :gender (validate-gender (:gender info))
                   :birthdate (validate-birthdate (:birthdate info))
-                  :address (if (empty? (:address info))
-                             [:fail "Address must be set."]
-                             :ok)
+                  :address (validate-address (:address info))
                   :insurancenum (validate-insurance-num (:insurancenum info))}]
       (if (some #(not= % :ok) (vals result))
         result
@@ -69,6 +79,7 @@
 (comment
   (mod10-check "1230")
   (mod10 "123412341234123")
+  (mod10 "123456789012345")
   (subs "1230" 0 (dec (count "1230")))
   (validate-patient {:fullname "Matt Judge"
     :gender "male"
