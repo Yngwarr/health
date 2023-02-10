@@ -8,7 +8,8 @@
             [compojure.route :as route]
             [ring.adapter.jetty :refer [run-jetty]]
             [muuntaja.middleware :as mw]
-            [health.database :as db]))
+            [health.database :as db]
+            [health.common.validation :refer [validate-patient]]))
 
 (defn page-404 [request]
   {:status 404
@@ -36,22 +37,29 @@
   (try
     (let [id (Integer/parseInt (-> request :route-params :id))
           info (:body-params request)
-          result (db/patch-patient id info)]
-      (match result
-        :ok {:status 200}
-        :not-found {:status 404}
-        [:fail error] {:status 500 :body error}))
+          validation-result (validate-patient info)]
+      (match validation-result
+        :ok (let [result (db/patch-patient id info)]
+              (match result
+                :ok {:status 200}
+                :not-found {:status 404}
+                [:fail error] {:status 500 :body error}))
+        [:fail error] {:status 400 :body error}
+        _ {:status 400 :body validation-result}))
     (catch NumberFormatException e
       {:status 400 :body "Expected a number as an id."})))
 
 (defn add-patient [request]
   (try
-    ; TODO validate info
-    (let [result (db/add-patient (:body-params request))]
-      (match result
-             :ok {:status 200}
-        ; TODO bad value for timestamp must return 400
-             [:fail error] {:status 500 :body error}))
+    (let [info (:body-params request)
+          validation-result (validate-patient info)]
+      (match validation-result
+        :ok (let [result (db/add-patient (:body-params request))]
+              (match result
+                :ok {:status 200}
+                [:fail error] {:status 500 :body error}))
+        [:fail error] {:status 400 :body error}
+        _ {:status 400 :body validation-result}))
     (catch Throwable e
       {:status 500 :body (ex-message e)})))
 
@@ -75,4 +83,10 @@
   (run-jetty app {:port 8080 :join? true}))
 
 (comment
-  (get-patients {}))
+  (get-patients {})
+  (add-patient {:body-params {:fullname "Igor"
+                              :gender "male"
+                              :birthdate "1342-12-12"
+                              :address "Los Santos"
+                              :insurancenum "1234123412341238"}})
+  )

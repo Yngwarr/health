@@ -57,3 +57,24 @@ td {
 .modal > * {
     margin-top: 8px;
 }
+
+input.error {
+    border-color: red;
+}
+
+input ~ .error-text, select ~ .error-text {
+    display: none;
+}
+
+input.error ~ .error-text, select.error ~ .error-text {
+    display: inline;
+}
+
+.error-text {
+    color: red;
+}
+
+/* workaround for marx css's strange behaviour */
+input:focus:invalid {
+    color: black;
+}

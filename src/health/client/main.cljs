@@ -1,8 +1,9 @@
 (ns health.client.main
   (:require-macros [cljs.core.async.macros :refer [go]])
-  (:require [dumdom.core :as d]
-            [cljs-http.client :as http]
-            [cljs.core.async :refer [<!]]))
+  (:require [cljs.core.async :refer [<!]]
+            [cljs.core.match :refer-macros [match]]
+            [dumdom.core :as d]
+            [cljs-http.client :as http]))
 
 (declare update-view)
 
@@ -10,31 +11,36 @@
 (def now-editing (atom nil))
 (def patients-info (atom []))
 
+(defn get-element [id]
+  (-> js/document (.getElementById id)))
+
 (defn search []
-  (reset! search-query (-> js/document (.getElementById "search-bar") .-value))
+  (reset! search-query (.-value (get-element "search-bar")))
   (update-view))
 
-(defn get-modal []
-  (-> js/document (.getElementById "modal-background")))
+(defn clear-details-errors []
+  (doseq [input (-> js/document (.querySelectorAll "#details input, #details select"))]
+    (-> input .-classList (.remove "error"))))
 
 (defn set-details-visibility [visible]
-  (let [modal (get-modal)]
+  (let [modal (get-element "modal-background")]
     (if visible
       (-> modal .-classList (.remove "hidden"))
       (do
         (-> modal .-classList (.add "hidden"))
+        (clear-details-errors)
         (reset! now-editing nil)))))
 
 (defn gather-details []
-  {:fullname (-> js/document (.getElementById "fullname") .-value)
-   :gender (-> js/document (.getElementById "gender") .-value)
-   :birthdate (-> js/document (.getElementById "birthdate") .-value)
-   :address (-> js/document (.getElementById "address") .-value)
-   :insurancenum (-> js/document (.getElementById "insurancenum") .-value)})
+  {:fullname (.-value (get-element "fullname"))
+   :gender (.-value (get-element "gender"))
+   :birthdate (.-value (get-element "birthdate"))
+   :address (.-value (get-element "address"))
+   :insurancenum (.-value (get-element "insurancenum"))})
 
 (defn set-input
   ([id] (set-input id ""))
-  ([id default] (set! (-> js/document (.getElementById id) .-value) default)))
+  ([id default] (set! (.-value (get-element id)) default)))
 
 (defn clear-details []
   (doseq [id ["fullname" "birthdate" "address" "insurancenum"]]
@@ -50,15 +56,32 @@
     (http/post "patient" {:transit-params details})
     (http/patch (str "patient/" @now-editing) {:transit-params details})))
 
+(defn update-details-status [status]
+  (prn status)
+  (doseq [pair (seq status)]
+    (let [[id error] pair
+          input (get-element (name id))
+          error-text (-> js/document (.querySelector (str "#" (name id) " ~ .error-text")))]
+      (if (= error "ok")
+        (-> input .-classList (.remove "error"))
+        (do
+          (-> (get-element (name id)) .-classList (.add "error"))
+          (set! (-> error-text .-innerText) (last error)))))))
+
+(defn handle-submit-error [body]
+  (if (map? body)
+    (update-details-status body)
+    (println (str "Error processing result: " body))))
+
 (defn submit-details []
-  ; TODO handle edit
   (let [details (gather-details)]
     (prn details)
-    ; TODO handle fail
     (go (let [result (<! (submit-request details))]
-          (if (= (:status result) 200)
-            (do (set-details-visibility false)
-                (update-view)))))))
+          (match (:status result)
+                 200 (do
+                       (set-details-visibility false)
+                       (update-view))
+                 400 (handle-submit-error (:body result)))))))
 
 (d/defcomponent Controls [props]
   [:div.row.controls
@@ -112,14 +135,23 @@
 (d/defcomponent Modal [props]
   [:div.hidden {:id "modal-background"}
    [:div.modal {:id "details"}
-    [:label "Full name:" [:input {:type "text" :id "fullname" :placeholder "John Doe"}]]
+    [:label "Full name:"
+     [:input {:type "text" :id "fullname" :placeholder "John Doe"}]
+     [:span.error-text "Error text."]]
     [:label "Gender:" [:select {:id "gender"}
                        [:option {:value "female"} "Female"]
                        [:option {:value "male"} "Male"]
-                       [:option {:value "other"} "Other"]]]
-    [:label "Birthdate:" [:input {:type "date" :id "birthdate" :placeholder "1981-12-31"}]]
-    [:label "Address:" [:input {:type "text" :id "address" :placeholder "Finland"}]]
-    [:label "Insurance #:" [:input {:type "number" :id "insurancenum" :placeholder "01101111010101101"}]]
+                       [:option {:value "other"} "Other"]]
+     [:span.error-text "Error text."]]
+    [:label "Birthdate:"
+     [:input {:type "date" :id "birthdate" :placeholder "1981-12-31"}]
+     [:span.error-text "Error text."]]
+    [:label "Address:"
+     [:input {:type "text" :id "address" :placeholder "Finland"}]
+     [:span.error-text "Error text."]]
+    [:label "Insurance #:"
+     [:input {:type "number" :id "insurancenum" :placeholder "01101111010101101"}]
+     [:span.error-text "Error text."]]
     [:div.row
      [:button {:on-click (fn [e] (submit-details))} "Submit"]
      [:button {:on-click (fn [e] (set-details-visibility false))} "Cancel"]]

@@ -1,5 +1,11 @@
 (ns health.common.validation)
 
+(defn digit->int
+  "Converts `digit` character to its integer value."
+  [digit]
+  #?(:clj (Character/digit digit 10)
+     :cljs (js/parseInt digit 10)))
+
 (defn validate-birthdate [date]
   (cond
     (not (string? date)) [:fail "Birthdate must be a string."]
@@ -22,14 +28,14 @@
   (let [sum (atom 0)
         to-double (atom (is-odd? (count payload-str)))]
     (doseq [digit-char payload-str]
-      (let [digit (Character/digit digit-char 10)]
+      (let [digit (digit->int digit-char)]
         (swap! sum #(+ % (if @to-double (digit-root (* 2 digit)) digit)))
         (swap! to-double not)))
     (mod (- 10 (mod @sum 10)) 10)))
 
 (defn mod10-check [value]
   (let [payload (subs value 0 (dec (count value)))
-        control-digit (Character/digit (last value) 10)]
+        control-digit (digit->int (last value))]
     (= (mod10 payload) control-digit)))
 
 (defn validate-insurance-num [value]
@@ -44,21 +50,25 @@
 
 (defn validate-patient [info]
   (if (map? info)
-    {:fullname (if (empty? (:fullname info))
-                 [:fail "Full name must be set."]
-                 :ok)
-     :gender (if (some #{(:gender info)} '("female" "male" "other"))
-               :ok
-               [:fail "Expected 'male', 'female' or 'other' as gender."])
-     :birthdate (validate-birthdate (:birthdate info))
-     :address (if (empty? (:address info))
-                [:fail "Address must be set."]
-                :ok)
-     :insurancenum (validate-insurance-num (:insurancenum info))}
+    (let [result {:fullname (if (empty? (:fullname info))
+                              [:fail "Full name must be set."]
+                              :ok)
+                  :gender (if (some #{(:gender info)} '("female" "male" "other"))
+                            :ok
+                            [:fail "Expected 'male', 'female' or 'other' as gender."])
+                  :birthdate (validate-birthdate (:birthdate info))
+                  :address (if (empty? (:address info))
+                             [:fail "Address must be set."]
+                             :ok)
+                  :insurancenum (validate-insurance-num (:insurancenum info))}]
+      (if (some #(not= % :ok) (vals result))
+        result
+        :ok))
     [:fail "Expected a map."]))
 
 (comment
   (mod10-check "1230")
+  (mod10 "123412341234123")
   (subs "1230" 0 (dec (count "1230")))
   (validate-patient {:fullname "Matt Judge"
     :gender "male"
