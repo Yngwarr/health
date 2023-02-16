@@ -18,7 +18,7 @@
           result (insert! ds :patients entry)]
       (match result
         [:fail error] result
-        :else :ok))
+        :else [:ok result]))
     (catch Throwable e [:fail (ex-message e)])))
 
 (defn find-patients [ds query-text]
@@ -47,7 +47,13 @@
     ; TODO handle different cases somehow
     (catch Throwable e [:fail (ex-message e)])))
 
+(defn insurancenum-exists? [ds insurancenum]
+  (not=
+   (:count (first (query ds ["select count(*) from patients where insurancenum = ?" insurancenum])))
+   0))
+
 (comment
+  (insurancenum-exists?)
   (update! (get-ds) :patients {:address "Miami"} {:id 27})
   (patch-patient 27 {:birthdate "cucumber"})
   (query ds ["select * from patients"])

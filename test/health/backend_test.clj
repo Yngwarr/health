@@ -157,6 +157,16 @@
                                    :insurancenum :ok}}
                (sut/patch-patient tx {:route-params {:id "1"}
                                       :body-params (assoc user-data :fullname "")}))))
+      (testing "existent insurance number"
+        (sut/add-patient tx {:body-params user-data})
+        (let [result (sut/add-patient tx {:body-params user-data})]
+          (is (= {:status 400 :body {:address :ok,
+                                     :birthdate :ok,
+                                     :fullname :ok,
+                                     :gender :ok,
+                                     :insurancenum [:fail "Insurance number must be unique."]}}
+                 (sut/patch-patient tx {:route-params {:id (-> result :body :patients/id str)}
+                                        :body-params (assoc user-data :insurancenum (:insurancenum user-data))})))))
       (testing "table should contain correct data only"
         (is (= {:status 200 :body (list user-data-result)}
                (let [res (sut/get-patients tx {})] (strip-ids res))))))
@@ -236,5 +246,5 @@
     (.rollback tx)))
 
 (comment
-  (run-test getting)
+  (run-test patching)
   (k/run :unit))

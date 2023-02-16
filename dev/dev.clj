@@ -2,7 +2,7 @@
   (:require [figwheel.main]
             [figwheel.main.api]
             [ring.adapter.jetty :refer [run-jetty]]
-            [health.backend :refer [app]]
+            [health.backend :refer [app backend-ds]]
             [health.database :as db]
             [next.jdbc.types :refer [as-date]]))
 
@@ -30,5 +30,5 @@
   (def server (run-jetty app {:port 8080 :join? false}))
   (.stop server)
   (populate-db 10)
-  (cljs)
+  (db/insurancenum-exists? backend-ds "1234123412341238")
   )

@@ -1,4 +1,6 @@
-(ns health.common.validation)
+(ns health.common.validation
+  (:require [health.database ])
+  )
 
 (defn digit->int
   "Converts `digit` character to its integer value."
@@ -60,6 +62,8 @@
       [:fail "Insuarnce number must be a string."]
     (not (re-matches #"\d{16}" value))
       [:fail "Insurance number must consist of 16 digits."]
+    #?(:clj ()
+       [:fail "Insurance number must be unique."])
     (not (mod10-check value))
       [:fail "Incorrect insurance number."]
     :else :ok))
