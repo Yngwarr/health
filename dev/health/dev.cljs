@@ -1,5 +1,8 @@
 (ns ^:figwheel-hooks health.dev
-  (:require [health.client.main :as main]))
+  (:require
+    [re-frame.core :as rf]
+    [health.client.main :as main]))
 
-;(defn ^:after-load render []
-  ;(main/render))
+(defn ^:after-load render []
+  (rf/clear-subscription-cache!)
+  (main/render))

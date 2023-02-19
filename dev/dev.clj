@@ -30,5 +30,4 @@
   (def server (run-jetty app {:port 8080 :join? false}))
   (.stop server)
   (populate-db 10)
-  (cljs)
   )
