@@ -10,6 +10,7 @@
             [muuntaja.middleware :as mw]
             [next.jdbc :refer [get-datasource]]
             [health.database :as db]
+            [health.routing :as routing]
             [health.common.validation :refer [validate-patient]]))
 
 ; TODO move database configuration to config files
@@ -73,20 +74,23 @@
     (catch Throwable e
       {:status 500 :body (ex-message e)})))
 
-(defroutes app-raw
-  (GET "/" [] (resource-response "index.html" {:root "public"}))
-  (GET "/patients" request (get-patients backend-ds request))
-  (POST "/patient" request (add-patient backend-ds request))
-  (DELETE "/patient/:id" [id] (delete-patient backend-ds id))
-  (PATCH "/patient/:id" request (patch-patient backend-ds request))
-  (route/resources "/")
-  page-404)
+;(defroutes app-raw
+  ;(GET "/" [] (resource-response "index.html" {:root "public"}))
+  ;(GET "/patients" request (get-patients backend-ds request))
+  ;(POST "/patient" request (add-patient backend-ds request))
+  ;(DELETE "/patient/:id" [id] (delete-patient backend-ds id))
+  ;(PATCH "/patient/:id" request (patch-patient backend-ds request))
+  ;(route/resources "/")
+  ;page-404)
+
+(def app-raw routing/app-raw)
 
 (def app (-> app-raw
              wrap-json-response
              mw/wrap-format
              wrap-keyword-params
-             wrap-params))
+             wrap-params
+             ))
 
 (defn -main [& args]
   (println "Starting the server...")
