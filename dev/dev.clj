@@ -1,15 +1,15 @@
 (ns dev
   (:require [figwheel.main]
-            [figwheel.main.api]
+            [figwheel.main.api :as fig]
             [ring.adapter.jetty :refer [run-jetty]]
-            [health.backend :refer [app]]
+            [health.backend :refer [app backend-ds]]
             [health.database :as db]
             [next.jdbc.types :refer [as-date]]))
 
 (defn cljs []
   (if (get @figwheel.main/build-registry "dev")
-    (figwheel.main.api/cljs-repl "dev")
-    (figwheel.main.api/start "dev")))
+    (fig/cljs-repl "dev")
+    (fig/start-join "dev")))
 
 (defn random-name []
   (str (rand-nth ["Fabio" "Luca" "Sascha" "Alex" "Daniele"]) " "
@@ -20,7 +20,8 @@
 
 (defn populate-db [amount]
   (doseq [x (range amount)]
-    (db/add-patient {:fullname (random-name)
+    (db/add-patient backend-ds
+                    {:fullname (random-name)
                      :gender (rand-nth ["male" "female" "other"])
                      :birthdate (random-date)
                      :address (rand-nth ["Finland" "Real World"])

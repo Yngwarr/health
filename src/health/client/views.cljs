@@ -1,11 +1,24 @@
-(ns health.client.views)
+(ns health.client.views
+  (:require [re-frame.core :refer [dispatch subscribe]]))
 
 (defn search-bar []
   [:div.row.controls
    [:input#search-bar {:type "text" :placeholder "Find something..."}]
-   ; TODO add on-click handlers
-   [:button "Search"]
-   [:button "Add a patient"]])
+   [:button
+    {:on-click #(dispatch [:search])}
+    "Search"]
+   [:button
+    {:on-click #(dispatch [:show-modal :add])}
+    "Add a patient"]])
+
+(defn actions [id]
+  [:div
+   [:button.action.material-symbols-outlined
+    ;{:on-click (fn [e] (edit-patient id))} "edit"]
+    {:on-click #(dispatch [:edit-patient id])} "edit"]
+   [:button.action.material-symbols-outlined
+    ;{:on-click (fn [e] (delete-patient id))} "delete"]])
+    {:on-click #(dispatch [:delete-patient id])} "delete"]])
 
 (defn patients-table []
   [:table#patients
@@ -18,9 +31,17 @@
      [:th "Insurance #"]
      [:th "Actions"]]]
    [:tbody
-    ; TODO patient info
-    ]
-   ])
+    (let [patients @(subscribe [:patients])]
+      (for [p patients]
+        (let [id (get p "patients/id")]
+          [:tr {:key id}
+           [:td id]
+           [:td (get p "patients/fullname")]
+           [:td (get p "patients/gender")]
+           [:td (get p "patients/birthdate")]
+           [:td (get p "patients/address")]
+           [:td (get p "patients/insurancenum")]
+           [:td [actions id]]])))]])
 
 (defn modal []
   [:div.hidden#modal-background
@@ -61,9 +82,11 @@
     [:div.row
      [:button
       ;{:on-click (fn [e] (submit-details))}
+      {:on-click #(dispatch [:submit-details])}
       "Submit"]
      [:button
       ;{:on-click (fn [e] (set-details-visibility false))}
+      {:on-click #(dispatch [:hide-modal])}
       "Cancel"]]]])
 
 (defn client-app []

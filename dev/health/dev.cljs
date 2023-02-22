@@ -3,6 +3,6 @@
     [re-frame.core :as rf]
     [health.client.main :as main]))
 
-(defn ^:after-load render []
-  (rf/clear-subscription-cache!)
-  (main/render))
+;(defn ^:after-load render []
+  ;(rf/clear-subscription-cache!)
+  ;(main/render))
