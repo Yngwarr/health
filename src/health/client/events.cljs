@@ -25,13 +25,15 @@
 ; TODO show error window
 (reg-event-fx
   :request-failed
-  (fn [{:keys [event]}]
+  (fn [{:keys [db event]}]
+    (println "request failed")
     (prn event)
-    {}))
+    {:db (assoc db :loading? false)}))
 
 (reg-event-fx
   :patients-updated
   (fn [{:keys [db event]}]
+    (println "patients updated")
     (let [patients (second event)]
       {:db (assoc db
                   :patients patients
@@ -47,7 +49,6 @@
   :delete-patient
   (fn [{:keys [event]}]
     (let [id (second event)]
-      (prn event)
       {:http-xhrio {:method :delete
                     :uri (str "patient/" id)
                     :format (ajax/transit-request-format)

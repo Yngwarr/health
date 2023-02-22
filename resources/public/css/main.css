@@ -33,7 +33,7 @@ td {
     margin: 1px;
 }
 
-#modal-background {
+.modal-background {
     position: absolute;
     left: 0;
     top: 0;

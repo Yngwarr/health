@@ -14,10 +14,8 @@
 (defn actions [id]
   [:div
    [:button.action.material-symbols-outlined
-    ;{:on-click (fn [e] (edit-patient id))} "edit"]
     {:on-click #(dispatch [:edit-patient id])} "edit"]
    [:button.action.material-symbols-outlined
-    ;{:on-click (fn [e] (delete-patient id))} "delete"]])
     {:on-click #(dispatch [:delete-patient id])} "delete"]])
 
 (defn patients-table []
@@ -43,9 +41,9 @@
            [:td (get p "patients/insurancenum")]
            [:td [actions id]]])))]])
 
-(defn modal []
-  [:div.hidden#modal-background
-   [:div.modal#details
+(defn edit-modal []
+  [:div.hidden.modal-background
+   [:div#details.modal
     [:label "Full name:"
      [:input#fullname
       {:type "text"
@@ -89,7 +87,15 @@
       {:on-click #(dispatch [:hide-modal])}
       "Cancel"]]]])
 
+(defn loading-modal []
+  [:div {:class (str "modal-background"
+                     (when (not @(subscribe [:loading?])) " hidden"))}
+   [:div#lodaing.modal
+    [:p "Loading..."]]])
+
 (defn client-app []
   [:<>
    [search-bar]
-   [patients-table]])
+   [patients-table]
+   [edit-modal]
+   [loading-modal]])
