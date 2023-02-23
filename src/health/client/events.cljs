@@ -3,7 +3,8 @@
     [ajax.core :as ajax]
     [day8.re-frame.http-fx]
     [re-frame.core :refer [reg-event-fx reg-event-db]]
-    [health.client.db :refer [default-db]]))
+    [health.client.db :refer [default-db]]
+    [health.client.views :refer [clear-details fill-details]]))
 
 (reg-event-fx
   :init-db
@@ -43,16 +44,20 @@
   (fn [{:keys [db]}]
     {:db (assoc db :now-editing :new)}))
 
-; TODO clear data in the details window
-(reg-event-db
+(reg-event-fx
   :hide-details
-  (fn [db]
-    (assoc db :now-editing nil)))
+  (fn [{:keys [db]}]
+    (clear-details)
+    {:db (assoc db :now-editing nil)}))
 
 ; TODO implement
 (reg-event-fx
   :edit-patient
-  (fn [{:keys [db]} [_ id]]
+  (fn [{:keys [db event]} [_ id]]
+    (prn event)
+    (let [patient (first (filter #(= (get % "patients/id") id) (:patients db)))]
+      (prn patient)
+      (fill-details patient))
     {:db (assoc db :now-editing id)}))
 
 (reg-event-fx

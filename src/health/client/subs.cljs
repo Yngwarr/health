@@ -5,7 +5,7 @@
 
 (reg-sub
   :patients
-  (fn [db _] (:patients db)))
+  (fn [db arg2] (:patients db)))
 
 (reg-sub
   :loading?

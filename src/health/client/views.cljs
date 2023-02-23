@@ -1,13 +1,31 @@
 (ns health.client.views
   (:require [re-frame.core :refer [dispatch subscribe]]))
 
+; -------- [HELPERS] --------
+
+(defn get-element [id]
+  (-> js/document (.getElementById id)))
+
+(defn set-input
+  ([id] (set-input id ""))
+  ([id default] (set! (.-value (get-element id)) default)))
+
+(defn clear-details []
+  (doseq [id ["fullname" "birthdate" "address" "insurancenum"]]
+    (set-input id))
+  (set-input "gender" "female"))
+
+(defn fill-details [patient]
+  (doseq [prop-name ["fullname" "gender" "birthdate" "address" "insurancenum"]]
+    (set-input prop-name (get patient (str "patients/" prop-name)))))
+
+; -------- [VIEW] --------
+
 (defn search-bar []
   [:div.row.controls
    [:input#search-bar {:type "text" :placeholder "Find something..."}]
    [:button
-    {:on-click #(dispatch [:search (-> js/document
-                                       (.getElementById "search-bar")
-                                       .-value)])}
+    {:on-click #(dispatch [:search (.-value (get-element "search-bar"))])}
     "Search"]
    [:button
     {:on-click #(dispatch [:add-patient])}
