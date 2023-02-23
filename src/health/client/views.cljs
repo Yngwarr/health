@@ -30,6 +30,21 @@
           (-> (get-element (name id)) .-classList (.add "error"))
           (set! (-> error-text .-innerText) (last error))))))
 
+(defn update-details-status [status]
+  (doseq [pair (seq status)]
+    (update-error (first pair) (last pair))))
+
+(defn clear-details-errors []
+  (doseq [input (-> js/document (.querySelectorAll "#details input, #details select"))]
+    (-> input .-classList (.remove "error"))))
+
+(defn gather-details []
+  {:fullname (.-value (get-element "fullname"))
+   :gender (.-value (get-element "gender"))
+   :birthdate (.-value (get-element "birthdate"))
+   :address (.-value (get-element "address"))
+   :insurancenum (.-value (get-element "insurancenum"))})
+
 ; -------- [VIEW] --------
 
 (defn search-bar []
@@ -108,7 +123,7 @@
     [:div.row
      [:button
       ;{:on-click (fn [e] (submit-details))}
-      {:on-click #(dispatch [:submit-details])}
+      {:on-click #(dispatch [:submit-details (gather-details)])}
       "Submit"]
      [:button
       {:on-click #(dispatch [:hide-details])}

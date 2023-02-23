@@ -4,7 +4,7 @@
     [day8.re-frame.http-fx]
     [re-frame.core :refer [reg-event-fx reg-event-db]]
     [health.client.db :refer [default-db]]
-    [health.client.views :refer [clear-details fill-details]]))
+    [health.client.views :refer [clear-details fill-details update-details-status]]))
 
 (reg-event-fx
   :init-db
@@ -50,11 +50,9 @@
     (clear-details)
     {:db (assoc db :now-editing nil)}))
 
-; TODO implement
 (reg-event-fx
   :edit-patient
-  (fn [{:keys [db event]} [_ id]]
-    (prn event)
+  (fn [{:keys [db]} [_ id]]
     (let [patient (first (filter #(= (get % "patients/id") id) (:patients db)))]
       (prn patient)
       (fill-details patient))
@@ -75,3 +73,29 @@
   (fn [{:keys [db]} [_ query]]
     {:db (assoc db :search-query query)
      :fx [[:dispatch [:update-patients]]]}))
+
+(reg-event-fx
+  :submit-details
+  (fn [{:keys [db]} [_ details]]
+    (let [now-editing (:now-editing db)]
+      {:http-xhrio {:method (if (= now-editing :new) :post :patch)
+                    :uri (if (= now-editing :new) "patient" (str "patients/" now-editing))
+                    :params details
+                    :format (ajax/transit-request-format)
+                    :response-format (ajax/transit-response-format)
+                    :on-success [:details-submit-done]
+                    :on-failure [:details-submit-fail]}})))
+
+(reg-event-fx
+  :details-submit-done
+  (fn [_ _]
+    (println "yay")
+    {:fx [[:dispatch [:hide-details]]
+          [:dispatch [:update-patients]]]}))
+
+; TODO rewrite in the reactive way
+(reg-event-fx
+  :details-submit-fail
+  (fn [{:keys [db]} [_ response]]
+    (update-details-status (:response response))
+    {:db db}))
