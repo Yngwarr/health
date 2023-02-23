@@ -33,31 +33,38 @@
 
 (reg-event-fx
   :patients-updated
-  (fn [{:keys [db event]}]
-    (let [patients (second event)]
-      {:db (assoc db
-                  :patients patients
-                  :loading? false)})))
+  (fn [{:keys [db]} [_ patients]]
+    {:db (assoc db
+                :patients patients
+                :loading? false)}))
+
+(reg-event-fx
+  :add-patient
+  (fn [{:keys [db]}]
+    {:db (assoc db :now-editing :new)}))
+
+; TODO clear data in the details window
+(reg-event-db
+  :hide-details
+  (fn [db]
+    (assoc db :now-editing nil)))
 
 ; TODO implement
 (reg-event-fx
   :edit-patient
-  (fn [{:keys [db event]}]
-    (prn event)
-    {}))
+  (fn [{:keys [db]} [_ id]]
+    {:db (assoc db :now-editing id)}))
 
 (reg-event-fx
   :delete-patient
-  (fn [{:keys [event]}]
-    (let [id (second event)]
-      {:http-xhrio {:method :delete
-                    :uri (str "patient/" id)
-                    :format (ajax/transit-request-format)
-                    :response-format (ajax/text-response-format)
-                    :on-success [:update-patients]
-                    :on-failure [:request-failed]}})))
+  (fn [_ [_ id]]
+    {:http-xhrio {:method :delete
+                  :uri (str "patient/" id)
+                  :format (ajax/transit-request-format)
+                  :response-format (ajax/text-response-format)
+                  :on-success [:update-patients]
+                  :on-failure [:request-failed]}}))
 
-; TODO implement
 (reg-event-fx
   :search
   (fn [{:keys [db]} [_ query]]

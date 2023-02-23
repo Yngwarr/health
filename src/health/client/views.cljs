@@ -10,7 +10,7 @@
                                        .-value)])}
     "Search"]
    [:button
-    {:on-click #(dispatch [:show-modal :add])}
+    {:on-click #(dispatch [:add-patient])}
     "Add a patient"]])
 
 (defn actions [id]
@@ -44,7 +44,8 @@
            [:td [actions id]]])))]])
 
 (defn edit-modal []
-  [:div.hidden.modal-background
+  [:div {:class (str "modal-background"
+                     (when (nil? @(subscribe [:now-editing])) " hidden"))}
    [:div#details.modal
     [:label "Full name:"
      [:input#fullname
@@ -85,8 +86,7 @@
       {:on-click #(dispatch [:submit-details])}
       "Submit"]
      [:button
-      ;{:on-click (fn [e] (set-details-visibility false))}
-      {:on-click #(dispatch [:hide-modal])}
+      {:on-click #(dispatch [:hide-details])}
       "Cancel"]]]])
 
 (defn loading-modal []

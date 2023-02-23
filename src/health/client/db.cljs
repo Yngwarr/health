@@ -2,6 +2,6 @@
 
 (def default-db
   {:search-query ""
-   :now-editing nil
+   :now-editing nil ; nil, :new or int
    :loading? false
    :patients []})

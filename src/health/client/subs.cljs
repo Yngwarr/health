@@ -10,3 +10,7 @@
 (reg-sub
   :loading?
   (fn [db _] (:loading? db)))
+
+(reg-sub
+  :now-editing
+  (fn [db _] (:now-editing db)))
