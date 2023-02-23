@@ -1,5 +1,6 @@
 (ns health.client.views
-  (:require [re-frame.core :refer [dispatch subscribe]]))
+  (:require [re-frame.core :refer [dispatch subscribe]]
+            [health.common.validation :as v]))
 
 ; -------- [HELPERS] --------
 
@@ -18,6 +19,16 @@
 (defn fill-details [patient]
   (doseq [prop-name ["fullname" "gender" "birthdate" "address" "insurancenum"]]
     (set-input prop-name (get patient (str "patients/" prop-name)))))
+
+(defn update-error [id error]
+  (let [input (get-element (name id))
+        error-text (-> js/document (.querySelector (str "#" (name id) " ~ .error-text")))]
+      ; I don't know why, but server sends "ok" instead of :ok
+      (if (some #{error} '("ok" :ok))
+        (-> input .-classList (.remove "error"))
+        (do
+          (-> (get-element (name id)) .-classList (.add "error"))
+          (set! (-> error-text .-innerText) (last error))))))
 
 ; -------- [VIEW] --------
 
@@ -69,8 +80,7 @@
      [:input#fullname
       {:type "text"
        :placeholder "John Doe"
-       ;:on-blur (fn [e] (update-error :fullname (v/validate-fullname (-> e .-target .-value))))
-       }]
+       :on-blur (fn [e] (update-error :fullname (v/validate-fullname (-> e .-target .-value))))}]
      [:span.error-text "Error text."]]
     [:label "Gender:" [:select#gender
                        [:option {:value "female"} "Female"]
@@ -81,22 +91,19 @@
      [:input#birthdate
       {:type "date"
        :placeholder "1981-12-31"
-       ;:on-blur (fn [e] (update-error :birthdate (v/validate-birthdate (-> e .-target .-value))))
-       }]
+       :on-blur (fn [e] (update-error :birthdate (v/validate-birthdate (-> e .-target .-value))))}]
      [:span.error-text "Error text."]]
     [:label "Address:"
      [:input#address
       {:type "text"
        :placeholder "Finland"
-       ;:on-blur (fn [e] (update-error :address (v/validate-address (-> e .-target .-value))))
-       }]
+       :on-blur (fn [e] (update-error :address (v/validate-address (-> e .-target .-value))))}]
      [:span.error-text "Error text."]]
     [:label "Insurance #:"
      [:input#insurancenum
       {:type "number"
        :placeholder "01101111010101101"
-       ;:on-blur (fn [e] (update-error :insurancenum (v/validate-insurance-num (-> e .-target .-value))))
-       }]
+       :on-blur (fn [e] (update-error :insurancenum (v/validate-insurance-num (-> e .-target .-value))))}]
      [:span.error-text "Error text."]]
     [:div.row
      [:button
