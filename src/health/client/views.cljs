@@ -5,7 +5,9 @@
   [:div.row.controls
    [:input#search-bar {:type "text" :placeholder "Find something..."}]
    [:button
-    {:on-click #(dispatch [:search])}
+    {:on-click #(dispatch [:search (-> js/document
+                                       (.getElementById "search-bar")
+                                       .-value)])}
     "Search"]
    [:button
     {:on-click #(dispatch [:show-modal :add])}

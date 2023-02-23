@@ -23,8 +23,8 @@ table {
     width: 100%;
 }
 
-td {
-    text-align: center;
+td, th {
+    text-align: center !important;
 }
 
 .action {
