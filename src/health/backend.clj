@@ -51,7 +51,8 @@
       (match validation-result
         :ok (let [result (db/patch-patient ds id info)]
               (match result
-                :ok {:status 200}
+                ; body is needed for :http-xhrio to dispatch :on-success
+                :ok {:status 200 :body {}}
                 :not-found {:status 404}
                 [:fail error] {:status 500 :body error}))
         [:fail error] {:status 400 :body error}
@@ -66,7 +67,8 @@
       (match validation-result
         :ok (let [result (db/add-patient ds (:body-params request))]
               (match result
-                :ok {:status 200}
+                ; body is needed for :http-xhrio to dispatch :on-success
+                :ok {:status 200 :body {}}
                 [:fail error] {:status 500 :body error}))
         [:fail error] {:status 400 :body error}
         _ {:status 400 :body validation-result}))

@@ -79,7 +79,7 @@
   (fn [{:keys [db]} [_ details]]
     (let [now-editing (:now-editing db)]
       {:http-xhrio {:method (if (= now-editing :new) :post :patch)
-                    :uri (if (= now-editing :new) "patient" (str "patients/" now-editing))
+                    :uri (if (= now-editing :new) "patient" (str "patient/" now-editing))
                     :params details
                     :format (ajax/transit-request-format)
                     :response-format (ajax/transit-response-format)
