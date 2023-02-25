@@ -69,6 +69,12 @@
                   :on-failure [:request-failed]}}))
 
 (reg-event-fx
+  :search-hit
+  (fn [_ [_ query]]
+    (set! js/window.location (if (empty? query) "/#" (str "/#/s/" query)))
+    {:fx []}))
+
+(reg-event-fx
   :search
   (fn [{:keys [db]} [_ query]]
     {:db (assoc db :search-query query)

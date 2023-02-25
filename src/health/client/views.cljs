@@ -49,9 +49,11 @@
 
 (defn search-bar []
   [:div.row.controls
-   [:input#search-bar {:type "text" :placeholder "Find something..."}]
+   [:input#search-bar {:type "text"
+                       :placeholder "Find something..."
+                       :on-change #(dispatch [:search-hit (.-value (get-element "search-bar"))])}]
    [:button
-    {:on-click #(dispatch [:search (.-value (get-element "search-bar"))])}
+    {:on-click #(dispatch [:search-hit (.-value (get-element "search-bar"))])}
     "Search"]
    [:button
     {:on-click #(dispatch [:add-patient])}
