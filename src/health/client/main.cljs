@@ -18,6 +18,7 @@
 
 (defroute "/" [] (dispatch [:search ""]))
 (defroute "/s/:query" [query] (dispatch [:search query]))
+(defroute "/p/:id" [id] (dispatch [:show-patient (js/parseInt id 10)]))
 
 (defonce history
   (doto (History.)

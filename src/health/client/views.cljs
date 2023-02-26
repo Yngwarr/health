@@ -82,7 +82,7 @@
         (let [id (get p "patients/id")]
           [:tr {:key id}
            [:td id]
-           [:td (get p "patients/fullname")]
+           [:td [:a {:href (str "/#/p/" id)} (get p "patients/fullname")]]
            [:td (get p "patients/gender")]
            [:td (get p "patients/birthdate")]
            [:td (get p "patients/address")]
@@ -131,6 +131,28 @@
       {:on-click #(dispatch [:hide-details])}
       "Cancel"]]]])
 
+(defn patient-modal []
+  (when (some? @(subscribe [:now-showing]))
+    [:div {:class (str "modal-background")}
+     (let [patient @(subscribe [:shown-patient])]
+       [:div#patient-win.modal
+        [:h1 (str (get patient "patients/fullname") " ")
+         [:span.material-symbols-outlined
+          (let [gender (get patient "patients/gender")]
+            (if (= gender "other")
+              "transgender"
+              gender))]]
+        [:p [:b "Birth date: "]
+         ;(let [birthdate (get patient "patients/birthdate")
+               ;birth-year (js/parseInt (subs birthdate 0 4) 10)
+               ;current-year (.getFullYear (new js/Date))]
+           ;(str birthdate " (" (- current-year birth-year) " y. o.)"))
+           (get patient "patients/birthdate")
+         ]
+        [:p [:b "Address: "] (get patient "patients/address")]
+        [:p [:b "Insurance #: "] (get patient "patients/insurancenum")]
+        [:button {:on-click #(dispatch [:hide-patient])} "Close"]])]))
+
 (defn loading-modal []
   [:div {:class (str "modal-background"
                      (when (not @(subscribe [:loading?])) " hidden"))}
@@ -142,4 +164,5 @@
    [search-bar]
    [patients-table]
    [edit-modal]
+   [patient-modal]
    [loading-modal]])

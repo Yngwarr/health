@@ -2,15 +2,21 @@
   (:require
     [ajax.core :as ajax]
     [day8.re-frame.http-fx]
-    [re-frame.core :refer [reg-event-fx reg-event-db]]
-    [health.client.db :refer [default-db]]
+    [re-frame.core :refer [reg-event-fx reg-event-db reg-fx]]
+    [health.client.db :refer [default-db find-patient]]
     [health.client.views :refer [clear-details fill-details update-details-status]]))
+
+(reg-fx
+  :set-query
+  (fn [query]
+    (set! js/window.location (if (empty? query) "/#" (str "/#/s/" query)))))
 
 (reg-event-fx
   :init-db
   (fn [_ _]
     {:db default-db
-     :fx [[:dispatch [:update-patients]]]}))
+     ;:fx [[:dispatch [:update-patients]]]
+     }))
 
 (reg-event-fx
   :update-patients
@@ -29,7 +35,6 @@
 (reg-event-fx
   :request-failed
   (fn [{:keys [db event]}]
-    (prn event)
     {:db (assoc db :loading? false)}))
 
 (reg-event-fx
@@ -53,10 +58,19 @@
 (reg-event-fx
   :edit-patient
   (fn [{:keys [db]} [_ id]]
-    (let [patient (first (filter #(= (get % "patients/id") id) (:patients db)))]
-      (prn patient)
-      (fill-details patient))
+    (fill-details (find-patient id (:patients db)))
     {:db (assoc db :now-editing id)}))
+
+(reg-event-fx
+  :show-patient
+  (fn [{:keys [db]} [_ id]]
+    {:db (assoc db :now-showing id)}))
+
+(reg-event-fx
+  :hide-patient
+  (fn [{:keys [db]} _]
+    {:db (assoc db :now-showing nil)
+     :fx [[:set-query (:search-query db)]]}))
 
 (reg-event-fx
   :delete-patient
@@ -71,8 +85,7 @@
 (reg-event-fx
   :search-hit
   (fn [_ [_ query]]
-    (set! js/window.location (if (empty? query) "/#" (str "/#/s/" query)))
-    {:fx []}))
+    {:fx [[:set-query query]]}))
 
 (reg-event-fx
   :search

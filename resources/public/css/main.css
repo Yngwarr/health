@@ -54,6 +54,10 @@ td, th {
     padding: 16px 32px;
 }
 
+#patient-win {
+    width: 60%;
+}
+
 .modal > * {
     margin-top: 8px;
 }
