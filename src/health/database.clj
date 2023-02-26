@@ -12,6 +12,9 @@
 (defn all-patients [ds]
   (query ds ["select * from patients"]))
 
+(defn get-patient [ds id]
+  (first (query ds ["select * from patients where id = ?" id])))
+
 (defn add-patient [ds info]
   (try
     (let [entry (assoc info :birthdate (as-date (:birthdate info)))
@@ -48,19 +51,4 @@
     (catch Throwable e [:fail (ex-message e)])))
 
 (comment
-  (update! (get-ds) :patients {:address "Miami"} {:id 27})
-  (patch-patient 27 {:birthdate "cucumber"})
-  (query ds ["select * from patients"])
-  (str (:patients/birthdate (first (query ds ["select birthdate from patients where id = 16"]))))
-  (dates->str (all-patients))
-  (query ds ["select * from patients where (fullname || ' ' || gender || ' ' || birthdate || ' ' || address || ' ' || insurancenum) like ?" "%Alex%"])
-  (find-patients "Alex")
-  (delete-patient "6")
-  (:next.jdbc/update-count (delete-patient 10))
-  (add-patient {:fullname "Matt Judge"
-                :gender "male"
-                :birthdate (as-date "1994-08-02")
-                :address "AU"
-                :insurancenum "9999111199991111"})
-  (as-date "1999-09-09")
-  )
+  (as-date "1999-09-09"))

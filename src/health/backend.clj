@@ -33,13 +33,26 @@
              (db/dates->str (db/all-patients ds))
              (db/dates->str (db/find-patients ds query-text))))})
 
+(defn id-result [result]
+  (match result
+    ; empty body is needed for :http-xhrio to dispatch :on-success when
+    ; response format is transit
+    :ok {:status 200 :body {}}
+    :not-found {:status 404 :body {}}
+    [:fail error] {:status 500 :body error}))
+
+(defn get-patient [ds id]
+  (try
+    (let [result (db/get-patient ds (Integer/parseInt id))]
+      (if (some? result)
+        {:status 200 :body result}
+        {:status 404 :body {}}))
+    (catch NumberFormatException e
+      {:status 400 :body "Expected a number."})))
+
 (defn delete-patient [ds id]
   (try
-    (let [result (db/delete-patient ds (Integer/parseInt id))]
-      (match result
-        :ok {:status 200}
-        :not-found {:status 404}
-        [:fail error] {:status 500 :body error}))
+    (id-result (db/delete-patient ds (Integer/parseInt id)))
     (catch NumberFormatException e
       {:status 400 :body "Expected a number."})))
 
@@ -49,12 +62,7 @@
           info (:body-params request)
           validation-result (validate-patient info)]
       (match validation-result
-        :ok (let [result (db/patch-patient ds id info)]
-              (match result
-                ; body is needed for :http-xhrio to dispatch :on-success
-                :ok {:status 200 :body {}}
-                :not-found {:status 404}
-                [:fail error] {:status 500 :body error}))
+        :ok (id-result (db/patch-patient ds id info))
         [:fail error] {:status 400 :body error}
         _ {:status 400 :body validation-result}))
     (catch NumberFormatException e
@@ -79,6 +87,7 @@
   (GET "/" [] (resource-response "index.html" {:root "public"}))
   (GET "/patients" request (get-patients backend-ds request))
   (POST "/patient" request (add-patient backend-ds request))
+  (GET "/patient/:id" [id] (get-patient backend-ds id))
   (DELETE "/patient/:id" [id] (delete-patient backend-ds id))
   (PATCH "/patient/:id" request (patch-patient backend-ds request))
   (route/resources "/")
@@ -95,6 +104,8 @@
   (run-jetty app {:port 8080 :join? true}))
 
 (comment
+  (db/get-patient backend-ds 1)
+  (get-patient backend-ds "2")
   (get-patients backend-ds {:params {:q "Rock"}})
   (add-patient backend-ds {:body-params {:fullname "Igor"
                                          :gender "male"
