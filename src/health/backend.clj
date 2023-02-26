@@ -30,8 +30,8 @@
   {:status 200
    :body (let [query-text (-> request :params :q)]
            (if (nil? query-text)
-             (db/dates->str (db/all-patients ds))
-             (db/dates->str (db/find-patients ds query-text))))})
+             (map db/date->str (db/all-patients ds))
+             (map db/date->str (db/find-patients ds query-text))))})
 
 (defn id-result [result]
   (match result
@@ -45,7 +45,7 @@
   (try
     (let [result (db/get-patient ds (Integer/parseInt id))]
       (if (some? result)
-        {:status 200 :body result}
+        {:status 200 :body (db/date->str result)}
         {:status 404 :body {}}))
     (catch NumberFormatException e
       {:status 400 :body "Expected a number."})))

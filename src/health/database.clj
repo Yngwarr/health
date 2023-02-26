@@ -6,8 +6,8 @@
 
 (set! *print-namespace-maps* false)
 
-(defn dates->str [patients]
-  (map #(assoc % :patients/birthdate (str (:patients/birthdate %))) patients))
+(defn date->str [patient]
+  (assoc patient :patients/birthdate (str (:patients/birthdate patient))))
 
 (defn all-patients [ds]
   (query ds ["select * from patients"]))

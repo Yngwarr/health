@@ -63,8 +63,28 @@
 
 (reg-event-fx
   :show-patient
-  (fn [{:keys [db]} [_ id]]
-    {:db (assoc db :now-showing id)}))
+  (fn [{:keys [db event]} [_ id]]
+    (prn event)
+    (if (nil? (find-patient id (:patients db)))
+      {:fx [[:dispatch [:get-patient id]]]}
+      {:db (assoc db :now-showing id)})))
+
+(reg-event-fx
+  :get-patient
+  (fn [{:keys [db event]} [_ id]]
+    (prn event)
+    {:http-xhrio {:method :get
+                  :uri (str "patient/" id)
+                  :format (ajax/transit-request-format)
+                  :response-format (ajax/transit-response-format)
+                  :on-success [:add-single-patient]
+                  :on-failure [:request-failed]}}))
+
+(reg-event-fx
+  :add-single-patient
+  (fn [{:keys [db event]} [_ response]]
+    {:db (assoc db :patients (vector response))
+     :fx [[:dispatch [:show-patient (get response "patients/id")]]]}))
 
 (reg-event-fx
   :hide-patient
