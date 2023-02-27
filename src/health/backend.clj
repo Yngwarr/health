@@ -10,6 +10,7 @@
             [muuntaja.middleware :as mw]
             [next.jdbc :refer [get-datasource]]
             [health.database :as db]
+            [health.routing :refer [routes]]
             [health.common.validation :refer [validate-patient]]))
 
 ; TODO move database configuration to config files
@@ -41,20 +42,22 @@
     :not-found {:status 404 :body {}}
     [:fail error] {:status 500 :body error}))
 
-(defn get-patient [ds id]
+(defn get-patient [ds request]
   (try
-    (let [result (db/get-patient ds (Integer/parseInt id))]
+    (let [id (-> request :route-params :id)
+          result (db/get-patient ds (Integer/parseInt id))]
       (if (some? result)
         {:status 200 :body (db/date->str result)}
         {:status 404 :body {}}))
     (catch NumberFormatException e
       {:status 400 :body "Expected a number."})))
 
-(defn delete-patient [ds id]
-  (try
-    (id-result (db/delete-patient ds (Integer/parseInt id)))
-    (catch NumberFormatException e
-      {:status 400 :body "Expected a number."})))
+(defn delete-patient [ds request]
+  (let [id (-> request :route-params :id)]
+    (try
+      (id-result (db/delete-patient ds (Integer/parseInt id)))
+      (catch NumberFormatException e
+        {:status 400 :body "Expected a number."}))))
 
 (defn patch-patient [ds request]
   (try
@@ -83,15 +86,23 @@
     (catch Throwable e
       {:status 500 :body (ex-message e)})))
 
-(defroutes app-raw
-  (GET "/" [] (resource-response "index.html" {:root "public"}))
-  (GET "/patients" request (get-patients backend-ds request))
-  (POST "/patient" request (add-patient backend-ds request))
-  (GET "/patient/:id" [id] (get-patient backend-ds id))
-  (DELETE "/patient/:id" [id] (delete-patient backend-ds id))
-  (PATCH "/patient/:id" request (patch-patient backend-ds request))
-  (route/resources "/")
-  page-404)
+;(defroutes app-raw
+  ;(GET "/" [] (resource-response "index.html" {:root "public"}))
+  ;(GET "/patients" request (get-patients backend-ds request))
+  ;(POST "/patient" request (add-patient backend-ds request))
+  ;(GET "/patient/:id" request (get-patient backend-ds request))
+  ;(DELETE "/patient/:id" request (delete-patient backend-ds request))
+  ;(PATCH "/patient/:id" request (patch-patient backend-ds request))
+  ;(route/resources "/")
+  ;page-404)
+
+(def app-raw
+  (routes [[:get "/" (fn [_] (resource-response "index.html" {:root "public"}))]
+           [:get "/patients" #(get-patients backend-ds %)]
+           [:post "/patient" #(add-patient backend-ds %)]
+           [:get ["/patient/" :id] #(get-patient backend-ds %)]
+           [:delete ["/patient/" :id] #(delete-patient backend-ds %)]
+           [:patch ["/patient/" :id] #(patch-patient backend-ds %)]]))
 
 (def app (-> app-raw
              wrap-json-response

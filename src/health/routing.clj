@@ -2,6 +2,7 @@
   (:require [ring.util.response :refer [resource-response]]
             [clojure.string :refer [join]]))
 
+; returns either map of route-params or nil
 (defn match-path [target value]
   (cond
     (string? target) (if (= target value) {} nil)
@@ -24,10 +25,9 @@
         (handler request)
         (or (and (= :get (:request-method request))
                  (resource-response (:uri request) {:root "public"}))
-            {:status 418})))))
+            {:status 404})))))
 
 (comment
-  ; TODO добавить обработку айдишников
   (def rs (routes [[:get "/" (fn [_] (resource-response "index.html" {:root "public"}))]
                    [:get "/patients" identity]
                    [:post "/patient" identity]
