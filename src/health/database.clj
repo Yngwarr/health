@@ -21,7 +21,7 @@
           result (insert! ds :patients entry)]
       (match result
         [:fail error] result
-        :else :ok))
+        :else [:ok result]))
     (catch Throwable e [:fail (ex-message e)])))
 
 (defn find-patients [ds query-text]

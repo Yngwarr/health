@@ -6,17 +6,23 @@
     [health.client.db :refer [default-db find-patient]]
     [health.client.views :refer [clear-details fill-details update-details-status]]))
 
+(defn change-location [location]
+  (set! js/window.location location))
+
+(reg-fx
+  :change-location
+  (fn [location]
+    (change-location location)))
+
 (reg-fx
   :set-query
   (fn [query]
-    (set! js/window.location (if (empty? query) "/#" (str "/#/s/" query)))))
+    (change-location (if (empty? query) "/#" (str "/#/s/" query)))))
 
 (reg-event-fx
   :init-db
   (fn [_ _]
-    {:db default-db
-     ;:fx [[:dispatch [:update-patients]]]
-     }))
+    {:db default-db}))
 
 (reg-event-fx
   :update-patients
@@ -127,10 +133,10 @@
 
 (reg-event-fx
   :details-submit-done
-  (fn [_ _]
-    (println "yay")
+  (fn [_ [_ response]]
+    (prn response)
     {:fx [[:dispatch [:hide-details]]
-          [:dispatch [:update-patients]]]}))
+          [:change-location (str "/#/p/" (get response "patients/id"))]]}))
 
 ; TODO rewrite in the reactive way
 (reg-event-fx

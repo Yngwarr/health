@@ -78,13 +78,13 @@
       (match validation-result
         :ok (let [result (db/add-patient ds (:body-params request))]
               (match result
-                ; body is needed for :http-xhrio to dispatch :on-success
-                :ok {:status 200 :body {}}
+                [:ok body] {:status 200 :body body}
                 [:fail error] {:status 500 :body error}))
         [:fail error] {:status 400 :body error}
         _ {:status 400 :body validation-result}))
     (catch Throwable e
       {:status 500 :body (ex-message e)})))
+
 
 ;(defroutes app-raw
   ;(GET "/" [] (resource-response "index.html" {:root "public"}))
