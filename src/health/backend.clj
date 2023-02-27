@@ -105,6 +105,7 @@
 
 (comment
   (app-raw {:uri "/" :request-method :get})
+  (resource-response "/index.html" {:root "public"})
   (db/get-patient backend-ds 1)
   (get-patient backend-ds "2")
   (get-patients backend-ds {:params {:q "Rock"}})
