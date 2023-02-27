@@ -104,6 +104,7 @@
   (run-jetty app {:port 8080 :join? true}))
 
 (comment
+  (app-raw {:uri "/" :request-method :get})
   (db/get-patient backend-ds 1)
   (get-patient backend-ds "2")
   (get-patients backend-ds {:params {:q "Rock"}})

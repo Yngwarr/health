@@ -28,6 +28,7 @@
                      :insurancenum (str (+ 100000 (rand-int 999999999)))})))
 
 (comment
+  (defn opp [& args] (prn args) {:status 404})
   (def server (run-jetty app {:port 8080 :join? false}))
   (.stop server)
   (populate-db 10)

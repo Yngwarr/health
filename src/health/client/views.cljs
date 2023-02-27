@@ -143,11 +143,10 @@
               "transgender"
               gender))]]
         [:p [:b "Birth date: "]
-         ;(let [birthdate (get patient "patients/birthdate")
-               ;birth-year (js/parseInt (subs birthdate 0 4) 10)
-               ;current-year (.getFullYear (new js/Date))]
-           ;(str birthdate " (" (- current-year birth-year) " y. o.)"))
-           (get patient "patients/birthdate")
+         (let [birthdate (get patient "patients/birthdate")
+               birth-year (js/parseInt (subs birthdate 0 4) 10)
+               current-year (.getFullYear (new js/Date))]
+           (str birthdate " (" (- current-year birth-year) " y. o.)"))
          ]
         [:p [:b "Address: "] (get patient "patients/address")]
         [:p [:b "Insurance #: "] (get patient "patients/insurancenum")]
