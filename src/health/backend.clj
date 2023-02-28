@@ -78,13 +78,12 @@
       (match validation-result
         :ok (let [result (db/add-patient ds (:body-params request))]
               (match result
-                [:ok body] {:status 200 :body body}
+                [:ok body] {:status 200 :body (db/date->str body)}
                 [:fail error] {:status 500 :body error}))
         [:fail error] {:status 400 :body error}
         _ {:status 400 :body validation-result}))
     (catch Throwable e
       {:status 500 :body (ex-message e)})))
-
 
 ;(defroutes app-raw
   ;(GET "/" [] (resource-response "index.html" {:root "public"}))
@@ -118,6 +117,12 @@
   (app-raw {:uri "/" :request-method :get})
   (resource-response "/index.html" {:root "public"})
   (db/get-patient backend-ds 1)
+  (add-patient backend-ds {:body-params {:fullname "I"
+                                         :gender "male"
+                                         :birthdate "1000-10-10"
+                                         :address "Where"
+                                         :insurancenum "0000000000000000"}})
+  (Integer/parseInt "99")
   (get-patient backend-ds "2")
   (get-patients backend-ds {:params {:q "Rock"}})
   (add-patient backend-ds {:body-params {:fullname "Igor"

@@ -33,6 +33,9 @@
 (defn strip-ids [response]
   (assoc response :body (map #(dissoc % :patients/id) (:body response))))
 
+(defn strip-id [response]
+  (assoc response :body (dissoc (:body response) :patients/id)))
+
 (defn get-patient [tx query]
   (-> (sut/get-patients tx {:params {:q query}}) :body first :patients/id str))
 
@@ -41,8 +44,19 @@
     (testing "starting empty"
       (is (= {:status 200 :body '()} (sut/get-patients tx {}))))
     (testing "adding"
-      (is (= {:status 200} (sut/add-patient tx {:body-params user-data})))
-      (is (= {:status 200} (sut/add-patient tx {:body-params (assoc user-data :fullname "Another User")})))
+      (is (= {:status 200 :body {:patients/address "Bournemouth, England, UK",
+                                 :patients/birthdate "1974-01-02",
+                                 :patients/fullname "Test User",
+                                 :patients/gender "male",
+                                 :patients/insurancenum "1234123412341238"}}
+             (strip-id (sut/add-patient tx {:body-params user-data}))))
+      (is (= {:status 200
+              :body {:patients/address "Bournemouth, England, UK",
+                     :patients/birthdate "1974-01-02",
+                     :patients/fullname "Another User",
+                     :patients/gender "male",
+                     :patients/insurancenum "1234123412341238"}}
+             (strip-id (sut/add-patient tx {:body-params (assoc user-data :fullname "Another User")}))))
       (is (= {:status 200
               :body '({:patients/fullname "Test User"
                        :patients/gender "male"
@@ -57,7 +71,7 @@
              (strip-ids (sut/get-patients tx {})))))
     (testing "deleting"
       (let [id (get-patient tx "Another")]
-        (is (= {:status 200} (sut/delete-patient tx id))))
+        (is (= {:status 200 :body {}} (sut/delete-patient tx {:route-params {:id id}}))))
       (is (= {:status 200
               :body '({:patients/fullname "Test User"
                        :patients/gender "male"
@@ -67,7 +81,7 @@
              (strip-ids (sut/get-patients tx {})))))
     (testing "patching"
       (let [id (get-patient tx "Test User")]
-        (is (= {:status 200}
+        (is (= {:status 200 :body {}}
                (sut/patch-patient tx {:route-params {:id id}
                                       :body-params (assoc user-data :fullname "Goro Majima")}))))
       (is (= {:status 200
@@ -148,7 +162,7 @@
         (is (= {:status 400 :body "Expected a number as an id."}
                (sut/patch-patient tx {:route-params {:id ""} :body-params user-data}))))
       (testing "non-existent id"
-        (is (= {:status 404} (sut/patch-patient tx {:route-params {:id "99"} :body-params user-data}))))
+        (is (= {:status 404 :body {}} (sut/patch-patient tx {:route-params {:id "99"} :body-params user-data}))))
       (testing "validation"
         (is (= {:status 400 :body {:address :ok,
                                    :birthdate :ok,
@@ -167,12 +181,13 @@
     (sut/add-patient tx {:body-params user-data})
     (testing "deleting"
       (testing "nonsense id"
-        (is (= {:status 400 :body "Expected a number."} (sut/delete-patient tx ""))))
+        (is (= {:status 400 :body "Expected a number."}
+               (sut/delete-patient tx {:route-params {:id ""}}))))
       (testing "non-existent id"
-        (is (= {:status 404} (sut/delete-patient tx "99"))))
+        (is (= {:status 404 :body {}} (sut/delete-patient tx {:route-params {:id "99"}}))))
       (testing "correct id"
         (let [id (get-patient tx "")]
-          (is (= {:status 200} (sut/delete-patient tx id))))))
+          (is (= {:status 200 :body {}} (sut/delete-patient tx {:route-params {:id id}}))))))
     (testing "table should be empty after the deletion"
       (is (= {:status 200 :body '()} (sut/get-patients tx {}))))
     (.rollback tx)))
